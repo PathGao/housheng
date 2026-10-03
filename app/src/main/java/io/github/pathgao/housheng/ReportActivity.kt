@@ -40,7 +40,7 @@ class ReportActivity : Activity() {
         days = savedInstanceState?.getInt("days", 7) ?: 7
         val page = ProductUi.page(this, "家庭报告")
         val body = page.body
-        periods = ProductUi.segmented(this, listOf("最近 7 天", "最近 30 天"), if (days == 30) 1 else 0) { index ->
+        periods = ProductUi.segmented(this, listOf("7 天", "30 天"), if (days == 30) 1 else 0) { index ->
             days = if (index == 1) 30 else 7
             load()
         }
@@ -177,12 +177,8 @@ class ReportActivity : Activity() {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             contentDescription = if (alwaysAllowed) "$name，收到 ${row.received} 次，始终放行"
             else "$name，收到 ${row.received} 次，请求清理 ${row.removalRequested} 次"
-            addView(LinearLayout(context).apply {
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-                addView(ProductUi.text(context, name, Type.LABEL).apply { layoutParams = LinearLayout.LayoutParams(0, -2, 1f) })
-                addView(ProductUi.text(context, "${row.received} 次 · $outcome", Type.SUPPORT).apply {
-                    layoutParams = LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(12) }
-                })
+            addView(ProductUi.text(context, ProductUi.twoLine(context, name, "${row.received} 次 · $outcome"), Type.LABEL).apply {
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             })
             addView(LinearLayout(context).apply {
                 weightSum = max.toFloat()

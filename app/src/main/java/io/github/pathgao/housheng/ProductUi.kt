@@ -47,6 +47,8 @@ class Page(val root: LinearLayout, val scroll: ScrollView, val body: LinearLayou
 
 object ProductUi {
     fun dp(context: Context, value: Int) = (value * context.resources.displayMetrics.density).toInt()
+    /** Above this font scale, side-by-side label/value pairs stack so labels keep whole words on one line. */
+    fun largeText(context: Context) = context.resources.configuration.fontScale > 1.3f
     private fun color(context: Context, id: Int) = context.getColor(id)
 
     /** A fixed app bar (or nothing on the home page) above a scrolling body. */
@@ -205,9 +207,10 @@ object ProductUi {
 
     fun navRow(context: Context, label: String, icon: Int? = null, value: String = "", support: String? = null, leading: Drawable? = null, action: () -> Unit): NavRow {
         val labelView = text(context, twoLine(context, label, support), Type.LABEL).apply { layoutParams = LinearLayout.LayoutParams(0, -2, 1f) }
+        val stacked = largeText(context)
         val valueView = text(context, value, Type.SUPPORT).apply {
-            maxLines = 1; ellipsize = TextUtils.TruncateAt.END
-            layoutParams = LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(context, 12) }
+            if (!stacked) { maxLines = 1; ellipsize = TextUtils.TruncateAt.END }
+            layoutParams = LinearLayout.LayoutParams(-2, -2).apply { if (!stacked) marginStart = dp(context, 12) }
         }
         val row = LinearLayout(context).apply {
             gravity = Gravity.CENTER_VERTICAL
@@ -222,7 +225,12 @@ object ProductUi {
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 layoutParams = LinearLayout.LayoutParams(dp(context, 40), dp(context, 40)).apply { marginEnd = dp(context, 16) }
             })
-            addView(labelView); addView(valueView)
+            if (stacked) addView(LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
+                labelView.layoutParams = LinearLayout.LayoutParams(-1, -2)
+                addView(labelView); addView(valueView)
+            }) else { addView(labelView); addView(valueView) }
             addView(ImageView(context).apply {
                 setImageResource(R.drawable.ic_chevron_right)
                 imageTintList = ColorStateList.valueOf(color(context, R.color.housheng_text_secondary))
@@ -347,7 +355,19 @@ object ProductUi {
     }
 
     /** Large numbers with a label under each, split by vertical rules. */
-    fun metrics(context: Context, items: List<Pair<String, String>>): LinearLayout = LinearLayout(context).apply {
+    fun metrics(context: Context, items: List<Pair<String, String>>): LinearLayout = if (largeText(context)) LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
+        items.forEach { (value, label) ->
+            addView(LinearLayout(context).apply {
+                isBaselineAligned = true
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+                contentDescription = "$label $value"
+                addView(text(context, value, Type.NUMBER).apply { layoutParams = LinearLayout.LayoutParams(-2, -2).apply { marginEnd = dp(context, 12) } })
+                addView(text(context, label, Type.SUPPORT).apply { layoutParams = LinearLayout.LayoutParams(0, -2, 1f) })
+            })
+        }
+        layoutParams = LinearLayout.LayoutParams(-1, -2)
+    } else LinearLayout(context).apply {
         dividerDrawable = GradientDrawable().apply { setColor(color(context, R.color.housheng_divider)); setSize(dp(context, 1), 1) }
         showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
         dividerPadding = 0
