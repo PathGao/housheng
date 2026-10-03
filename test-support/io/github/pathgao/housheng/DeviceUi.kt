@@ -64,7 +64,32 @@ internal class DevicePreparation {
     private fun bound(): Boolean = DeviceUi.shell("dumpsys accessibility").lineSequence()
         .any { it.contains("Bound services:") && it.contains("后生页面观察") }
 
+    private fun waitBound(): Boolean {
+        repeat(40) { if (bound()) return true; Thread.sleep(250) }
+        return false
+    }
+
+    /** Re-enables the service without reading any Settings text; false where shell may not write secure settings. */
+    private fun reconnectThroughSecureSettings(): Boolean {
+        val key = "enabled_accessibility_services"
+        val own = android.content.ComponentName("io.github.pathgao.housheng", "io.github.pathgao.housheng.FeedService")
+        val others = DeviceUi.shell("settings get secure $key").trim().split(':')
+            .filter { it.isNotBlank() && it != "null" && android.content.ComponentName.unflattenFromString(it) != own }
+        return try {
+            DeviceUi.shell(if (others.isEmpty()) "settings delete secure $key" else "settings put secure $key ${others.joinToString(":")}")
+            DeviceUi.shell("settings put secure $key ${(others + own.flattenToString()).joinToString(":")}")
+            DeviceUi.shell("settings put secure accessibility_enabled 1")
+            waitBound()
+        } catch (_: IllegalStateException) { false }
+    }
+
     fun reconnectServicesForInstrumentation() {
+        if (reconnectThroughSecureSettings()) {
+            DeviceUi.shell("am start -W -n io.github.pathgao.housheng.fixture/.MainActivity")
+            return
+        }
+        // MIUI denies shell secure-settings writes unless "USB 调试（安全设置）" is on, so toggle the service in
+        // Settings instead. The texts below, including the risk dialog, are zh-CN MIUI strings seen on Xiaomi 10S, Android 13.
         if (DeviceUi.settingsText().contains("要停用“后生页面观察”吗")) DeviceUi.click("取消")
         DeviceUi.shell("am start -W -f 0x10008000 -a android.settings.ACCESSIBILITY_SETTINGS")
         if (!DeviceUi.waitClick("已下载的应用")) throw AssertionError(DeviceUi.settingsText())
