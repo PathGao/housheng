@@ -6,9 +6,9 @@
 
 安装调试 APK，打开后生 → 设置与诊断 → 配置 Clef API / 测试连接。打开“手机独立调用 API”，填入 Cloudflare Account ID 和 API Token，保存后点击测试连接。凭据使用 Android Keystore AES-GCM 加密保存，排除备份与设备迁移。只使用手机网络，断开 USB 后仍可请求 API。手机网络必须能访问 api.cloudflare.com。
 
-判断规则唯一来源是 app/src/debug/assets/clef-questions.json，电脑客户端也读取该文件。手机模型开关默认关闭，进程重启关闭。只有已勾选的合成验证场普通内容能触发模型判断，Cloudflare 会收到该合成文本。API 错误、未知或不确定结果均保留，没有关键词降级。
+判断规则唯一来源是 app/src/debug/assets/clef-questions.json，电脑客户端也读取该文件。验证场模型开关和各真实应用开关默认关闭，进程重启后关闭。验证场只有已勾选的普通内容能触发模型判断，Cloudflare 会收到该合成文本。真实应用发送的范围见 [应用范围](../../docs/app-scope.md)。API 错误、未知或不确定结果均保留，没有关键词降级。
 
-调试模型动作期限3秒，普通关键词路径500ms。期限在读取页面时固定，不因排队或后续事件刷新。切页、来源撤销、停止执行、过期、广告和未知页面不能触发旧动作。当前发行构建仍不包含网络能力，真实应用信息流尚未开放。
+调试模型动作期限3秒，普通关键词路径500ms。期限在读取页面时固定，不因排队或后续事件刷新。切页、来源撤销、停止执行、过期、广告和未知页面不能触发旧动作。当前发行构建仍不包含网络能力。
 
 ## 电脑评估与 USB 桥接
 
@@ -35,11 +35,11 @@ python3 validation/clef/bridge.py
 选择明确的设备，避免误操作已运行的模拟器。手机需保持解锁：
 
 ```sh
-ANDROID_SERIAL=90bed70b sh scripts/test-device.sh --model direct
+ANDROID_SERIAL=<目标设备序列号> sh scripts/test-device.sh --model direct
 ```
 
 ```sh
-ANDROID_SERIAL=90bed70b sh scripts/test-device.sh --model usb
+ANDROID_SERIAL=<目标设备序列号> sh scripts/test-device.sh --model usb
 ```
 
 测试脚本经标准输入把电脑凭据暂存到应用私有目录，测试通过配置保存后删除暂存明文。直连测试移除18765反向转发，USB测试要求桥接健康检查通过。测试结束后开关关闭，独立验证场恢复服务。
