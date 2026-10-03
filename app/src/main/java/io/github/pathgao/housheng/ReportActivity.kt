@@ -6,20 +6,30 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
-import android.widget.CheckBox
+import android.widget.LinearLayout
+import android.widget.RadioGroup
+import android.widget.ScrollView
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executors
 
 class ReportActivity : Activity() {
     private val worker = Executors.newSingleThreadExecutor()
-    private lateinit var preview: TextView
-    private lateinit var includeApps: CheckBox
+    private lateinit var periods: RadioGroup
+    private lateinit var summary: TextView
+    private lateinit var summaryContent: LinearLayout
+    private lateinit var appsSection: TextView
+    private lateinit var apps: LinearLayout
+    private lateinit var includeApps: Switch
+    private lateinit var preview: View
     private lateinit var copy: Button
     private lateinit var share: Button
-    private lateinit var refresh: Button
-    private val periodButtons = mutableListOf<Button>()
     private var days = 7
     private var generation = 0
     private var report: String? = null
@@ -28,31 +38,47 @@ class ReportActivity : Activity() {
         super.onCreate(savedInstanceState)
         Session.initialize(this)
         days = savedInstanceState?.getInt("days", 7) ?: 7
-        val body = LegacyUi.page(this, "给孩子看一眼", "先在这里看清楚，再决定是否分享。")
-        val controls = LegacyUi.card(this, "选择报告范围", "统计保存在这台手机上，最多保留最近 30 天。分享不会自动发送给任何人。")
-        controls.addView(LegacyUi.button(this, "最近 7 天") { days = 7; load() }.also { periodButtons.add(it) })
-        controls.addView(LegacyUi.button(this, "最近 30 天") { days = 30; load() }.also { periodButtons.add(it) })
-        includeApps = CheckBox(this).apply {
-            text = "报告中包含本机应用清单"
-            textSize = 18f
-            minHeight = LegacyUi.dp(context, 56)
+        val page = ProductUi.page(this, "家庭报告")
+        val body = page.body
+        periods = ProductUi.segmented(this, listOf("最近 7 天", "最近 30 天"), if (days == 30) 1 else 0) { index ->
+            days = if (index == 1) 30 else 7
+            load()
+        }
+        body.addView(periods)
+        summary = ProductUi.text(this, "", Type.SUPPORT)
+        summaryContent = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        body.addView(ProductUi.spacer(this))
+        body.addView(ProductUi.panel(this).apply {
+            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+            addView(summary); addView(summaryContent)
+        })
+        appsSection = ProductUi.section(this, "各应用")
+        apps = ProductUi.group(this)
+        body.addView(appsSection); body.addView(apps)
+        body.addView(ProductUi.section(this, "分享内容"))
+        includeApps = ProductUi.switchRow(this, "附上应用清单", "只含应用名和安装日期").apply {
             isChecked = savedInstanceState?.getBoolean("includeApps") ?: false
             setOnCheckedChangeListener { _, _ -> load() }
         }
-        controls.addView(includeApps)
-        controls.addView(LegacyUi.text(this, "勾选后才查询有桌面入口的应用名称和安装时间，不读取应用内容。近 30 天安装不代表有害。", 16f))
-        refresh = LegacyUi.button(this, "重新生成报告") { load() }
-        controls.addView(refresh)
-        body.addView(controls)
-        preview = LegacyUi.text(this, "正在整理报告…", 18f).apply { setTextIsSelectable(true) }
-        body.addView(LegacyUi.card(this, "报告预览").apply { addView(preview) })
-        copy = LegacyUi.button(this, "复制报告") {
+        preview = ProductUi.navRow(this, "预览全文") { report?.let(::showPreview) }.apply {
+            label.setTextColor(getColor(R.color.housheng_primary))
+        }.view
+        body.addView(ProductUi.group(this).apply { addView(includeApps); addView(preview) })
+        body.addView(ProductUi.spacer(this, 32))
+        body.addView(ProductUi.group(this).apply {
+            addView(ProductUi.button(this@ReportActivity, "清空历史统计", ButtonKind.DANGER) {
+                AlertDialog.Builder(this@ReportActivity).setTitle("清空本机历史统计？")
+                    .setMessage("过去的统计无法恢复，已经分享出去的报告不会被删除。")
+                    .setPositiveButton("清空记录") { _, _ -> clearHistory() }.setNegativeButton("保留", null).show()
+            })
+        })
+        copy = ProductUi.button(this, "复制", ButtonKind.OUTLINED) {
             report?.let {
                 getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("后生家庭报告", it))
-                Toast.makeText(this, "已复制，可粘贴给孩子", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "已复制", Toast.LENGTH_SHORT).show()
             }
         }
-        share = LegacyUi.button(this, "选择分享给谁", true) {
+        share = ProductUi.button(this, "分享给家人", ButtonKind.FILLED) {
             report?.let { text ->
                 val intent = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
                 runCatching { startActivity(Intent.createChooser(intent, "分享后生家庭报告")) }
@@ -62,24 +88,33 @@ class ReportActivity : Activity() {
                     }
             }
         }
-        body.addView(copy); body.addView(share)
-        body.addView(LegacyUi.text(this, "孩子可以根据报告帮你调整来源和关键词。当前版本需要在这台手机上修改设置，不能远程控制手机。", 16f))
-        body.addView(LegacyUi.card(this, "本机记录管理", "清空会删除通知汇总和连接记录，不修改系统权限或通知规则。之后收到的新通知会重新开始统计。").apply {
-            addView(LegacyUi.button(this@ReportActivity, "清空历史统计") {
-                AlertDialog.Builder(this@ReportActivity).setTitle("清空本机历史统计？")
-                    .setMessage("过去的统计无法恢复，已经分享出去的报告不会被删除。")
-                    .setPositiveButton("清空记录") { _, _ -> clearHistory() }.setNegativeButton("保留", null).show()
-            })
-        })
+        ProductUi.bottomBar(this, page, copy to 1f, share to 2f)
         load()
     }
 
-    private fun setLoading() {
-        periodButtons.forEach { it.isEnabled = false }
-        report = null; copy.isEnabled = false; share.isEnabled = false
-        refresh.isEnabled = false; includeApps.isEnabled = false
-        preview.text = "正在整理最近 $days 天的报告…"
+    private fun setInputsEnabled(enabled: Boolean) {
+        for (i in 0 until periods.childCount) periods.getChildAt(i).isEnabled = enabled
+        includeApps.isEnabled = enabled
+        preview.isEnabled = enabled
     }
+
+    private fun setLoading() {
+        setInputsEnabled(false)
+        report = null; copy.isEnabled = false; share.isEnabled = false
+        summary.text = "正在整理最近 $days 天的报告…"
+        summaryContent.removeAllViews()
+        appsSection.visibility = View.GONE; apps.visibility = View.GONE
+    }
+
+    private fun showFailure(message: String) {
+        setInputsEnabled(true)
+        summary.text = message
+        summaryContent.removeAllViews()
+        summaryContent.addView(ProductUi.button(this, "重试", ButtonKind.TONAL) { load() }.apply {
+            (layoutParams as LinearLayout.LayoutParams).topMargin = ProductUi.dp(context, 16)
+        })
+    }
+
     private fun load() {
         if (!::preview.isInitialized) return
         val request = ++generation
@@ -95,27 +130,89 @@ class ReportActivity : Activity() {
         worker.execute {
             val result = runCatching {
                 val snapshot = ReportStore(this).use { it.snapshot(window) }
-                formatFamilyReport(snapshot, selected, rules, state, if (withApps) loadInstalledApps(this) else null, alwaysAllowedSources = allowed)
+                snapshot to formatFamilyReport(snapshot, selected, rules, state, if (withApps) loadInstalledApps(this) else null, alwaysAllowedSources = allowed)
             }
             runOnUiThread {
                 if (isDestroyed || request != generation) return@runOnUiThread
-                refresh.isEnabled = true; includeApps.isEnabled = true; periodButtons.forEach { it.isEnabled = true }
-                result.onSuccess {
-                    report = it; preview.text = it; copy.isEnabled = true; share.isEnabled = true
-                }.onFailure { preview.text = "报告暂时无法生成，请点击“重新生成报告”重试。" }
+                result.onSuccess { (snapshot, text) ->
+                    setInputsEnabled(true)
+                    report = text; copy.isEnabled = true; share.isEnabled = true
+                    showSummary(snapshot, allowed)
+                }.onFailure { showFailure("报告暂时无法生成。") }
             }
         }
     }
+
+    private fun showSummary(snapshot: ReportSnapshot, allowed: Set<String>) {
+        val rows = snapshot.notifications.filter { it.source != AppCatalog.FIXTURE && AppCatalog.permits(it.source, "notifications") }
+        val zone = ZoneId.systemDefault()
+        val format = DateTimeFormatter.ofPattern("M月d日")
+        fun date(at: Long) = Instant.ofEpochMilli(at).atZone(zone).format(format)
+        summary.text = "${date(snapshot.startAt)} – ${date(snapshot.endAt)}"
+        if (rows.isEmpty()) {
+            summaryContent.addView(ProductUi.text(this, "这段时间还没有记录。", Type.BODY).apply {
+                setPadding(0, ProductUi.dp(context, 12), 0, 0)
+            })
+            return
+        }
+        summaryContent.addView(ProductUi.metrics(this, listOf(
+            "${rows.sumOf { it.received }}" to "收到",
+            "${rows.sumOf { it.removalRequested }}" to "请求清理",
+            "${rows.sumOf { it.`protected` }}" to "受保护"
+        )).apply { setPadding(0, ProductUi.dp(context, 8), 0, 0) })
+        apps.removeAllViews()
+        val max = rows.maxOf { it.received }.coerceAtLeast(1)
+        rows.sortedByDescending { it.received }.forEach { row -> apps.addView(appRow(row, row.source in allowed, max)) }
+        appsSection.visibility = View.VISIBLE; apps.visibility = View.VISIBLE
+    }
+
+    private fun appRow(row: NoticeSummary, alwaysAllowed: Boolean, max: Int): View {
+        val name = AppCatalog.sources.getValue(row.source)
+        val outcome = if (alwaysAllowed) "始终放行" else "请求清理 ${row.removalRequested}"
+        val dp = { value: Int -> ProductUi.dp(this, value) }
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            minimumHeight = dp(64)
+            setPadding(dp(16), dp(12), dp(16), dp(16))
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            contentDescription = if (alwaysAllowed) "$name，收到 ${row.received} 次，始终放行"
+            else "$name，收到 ${row.received} 次，请求清理 ${row.removalRequested} 次"
+            addView(LinearLayout(context).apply {
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                addView(ProductUi.text(context, name, Type.LABEL).apply { layoutParams = LinearLayout.LayoutParams(0, -2, 1f) })
+                addView(ProductUi.text(context, "${row.received} 次 · $outcome", Type.SUPPORT).apply {
+                    layoutParams = LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(12) }
+                })
+            })
+            addView(LinearLayout(context).apply {
+                weightSum = max.toFloat()
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                layoutParams = LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(12) }
+                addView(View(context).apply {
+                    background = ProductUi.rounded(context, R.color.housheng_primary, 4)
+                    layoutParams = LinearLayout.LayoutParams(0, -1, row.received.toFloat())
+                })
+            })
+        }
+    }
+
+    private fun showPreview(text: String) {
+        val pad = ProductUi.dp(this, 24)
+        AlertDialog.Builder(this)
+            .setView(ScrollView(this).apply {
+                addView(ProductUi.text(this@ReportActivity, text, Type.BODY).apply {
+                    setTextIsSelectable(true)
+                    setPadding(pad, pad, pad, 0)
+                })
+            })
+            .setPositiveButton("关闭", null).show()
+    }
+
     private fun clearHistory() {
         ++generation
         setLoading()
         Session.report(this, onFailure = {
-            runOnUiThread {
-                if (!isDestroyed) {
-                    preview.text = "清空失败，请重新查询后重试。"
-                    refresh.isEnabled = true; includeApps.isEnabled = true; periodButtons.forEach { it.isEnabled = true }
-                }
-            }
+            runOnUiThread { if (!isDestroyed) showFailure("清空失败，记录没有改动。") }
         }) { store ->
             store.clear()
             runOnUiThread {
