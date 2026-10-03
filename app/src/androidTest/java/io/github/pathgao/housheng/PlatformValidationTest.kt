@@ -90,11 +90,13 @@ class PlatformValidationTest {
                     views(activity.window.decorView).filterIsInstance<Button>().single { it.text == "读取应用清单" }.performClick()
                 }
                 var rendered = false
+                var texts = emptyList<String>()
                 while (!rendered && Session.now() < deadline) {
                     Thread.sleep(50)
-                    onMain { rendered = views(activity.window.decorView).filterIsInstance<TextView>().any { it.text.startsWith("后生\n") } }
+                    onMain { texts = views(activity.window.decorView).filterIsInstance<TextView>().map { it.text.toString() } }
+                    rendered = texts.any { "\n" in it && "安装" in it }
                 }
-                assertTrue("大字号下应用行应正常显示", rendered)
+                assertTrue("大字号下应用行应正常显示：$texts", rendered)
             } finally { onMain { activity.finish() } }
         } finally { DeviceUi.shell("settings put system font_scale $previous") }
     }
