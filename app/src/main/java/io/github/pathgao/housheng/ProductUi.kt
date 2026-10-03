@@ -188,10 +188,19 @@ object ProductUi {
         layoutParams = LinearLayout.LayoutParams(dp(context, 40), dp(context, 40)).apply { marginEnd = dp(context, 16) }
     }
 
+    /** Launcher icon of an installed app, or a neutral placeholder when it is not installed. */
+    fun appIcon(context: Context, packageName: String): Drawable =
+        runCatching { context.packageManager.getApplicationIcon(packageName) }.getOrElse {
+            android.graphics.drawable.LayerDrawable(arrayOf(rounded(context, R.color.housheng_surface_variant, 10),
+                context.getDrawable(R.drawable.ic_apps)!!.mutate().apply { setTint(color(context, R.color.housheng_text_secondary)) })).apply {
+                setLayerInset(1, dp(context, 8), dp(context, 8), dp(context, 8), dp(context, 8))
+            }
+        }
+
     /** Navigation row: [icon] label [value] ›. The whole row is one button for TalkBack. */
     class NavRow(val view: LinearLayout, val label: TextView, val value: TextView)
 
-    fun navRow(context: Context, label: String, icon: Int? = null, value: String = "", support: String? = null, action: () -> Unit): NavRow {
+    fun navRow(context: Context, label: String, icon: Int? = null, value: String = "", support: String? = null, leading: Drawable? = null, action: () -> Unit): NavRow {
         val labelView = text(context, twoLine(context, label, support), Type.LABEL).apply { layoutParams = LinearLayout.LayoutParams(0, -2, 1f) }
         val valueView = text(context, value, Type.SUPPORT).apply {
             maxLines = 1; ellipsize = TextUtils.TruncateAt.END
@@ -205,6 +214,11 @@ object ProductUi {
             isClickable = true; isFocusable = true
             accessibilityDelegate = asButton
             if (icon != null) addView(leadingIcon(context, icon))
+            if (leading != null) addView(ImageView(context).apply {
+                setImageDrawable(leading)
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                layoutParams = LinearLayout.LayoutParams(dp(context, 40), dp(context, 40)).apply { marginEnd = dp(context, 16) }
+            })
             addView(labelView); addView(valueView)
             addView(ImageView(context).apply {
                 setImageResource(R.drawable.ic_chevron_right)
