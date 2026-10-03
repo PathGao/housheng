@@ -47,7 +47,6 @@ class InventoryActivity : Activity() {
     private val year = SimpleDateFormat("yyyy", Locale.CHINA)
     private val scanTime = SimpleDateFormat("M月d日 HH:mm", Locale.CHINA)
 
-    /** Section title or the one-sentence helper under a section. */
     private data class Caption(val value: String, val helper: Boolean)
 
     override fun onCreate(state: Bundle?) {
@@ -63,7 +62,7 @@ class InventoryActivity : Activity() {
             (layoutParams as LinearLayout.LayoutParams).topMargin = dp(16)
         }
         limits = ProductUi.helper(this, "不含隐藏的应用，最多显示 500 个。")
-        // ponytail: ListView instead of page.scroll so up to 500 rows recycle.
+        // ListView instead of page.scroll so up to 500 rows recycle.
         val list = ListView(this).apply {
             divider = null
             selector = ColorDrawable(0)
@@ -176,7 +175,6 @@ class InventoryActivity : Activity() {
         }
     }
 
-    /** A navRow over an inset divider, rebound on recycle. */
     private fun appCell() = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         addView(ProductUi.navRow(context, "", leading = ColorDrawable(0)) {}.view)

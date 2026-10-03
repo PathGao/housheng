@@ -51,7 +51,6 @@ object ProductUi {
     fun largeText(context: Context) = context.resources.configuration.fontScale > 1.3f
     private fun color(context: Context, id: Int) = context.getColor(id)
 
-    /** A fixed app bar (or nothing on the home page) above a scrolling body. */
     fun page(activity: Activity, title: String? = null): Page {
         val root = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -96,14 +95,12 @@ object ProductUi {
         return Page(root, scroll, body)
     }
 
-    /** App bar action, such as 刷新. Returns the button so callers can disable it while busy. */
     fun appBarAction(page: Page, label: String, action: () -> Unit): Button =
         button(page.root.context, label, ButtonKind.TEXT, action).also {
             it.layoutParams = LinearLayout.LayoutParams(-2, -2)
             (page.root.getChildAt(0) as LinearLayout).addView(it)
         }
 
-    /** Pinned bottom bar for the page's main actions. */
     fun bottomBar(activity: Activity, page: Page, vararg actions: Pair<Button, Float>) {
         page.root.addView(View(activity).apply { setBackgroundColor(color(activity, R.color.housheng_divider)); layoutParams = LinearLayout.LayoutParams(-1, dp(activity, 1)) })
         page.root.addView(LinearLayout(activity).apply {
@@ -144,7 +141,6 @@ object ProductUi {
         setPadding(dp(context, 4), dp(context, 20), dp(context, 4), dp(context, 8))
     }
 
-    /** One sentence under a group. */
     fun helper(context: Context, value: String): TextView = text(context, value, Type.SUPPORT).apply {
         setPadding(dp(context, 4), dp(context, 8), dp(context, 4), 0)
     }
@@ -173,7 +169,6 @@ object ProductUi {
         layoutParams = LinearLayout.LayoutParams(-1, -2)
     }
 
-    /** Label plus optional one-line support, as one styled string for rows and switches. */
     fun twoLine(context: Context, label: String, support: String?): CharSequence = SpannableStringBuilder(label).apply {
         if (!support.isNullOrEmpty()) {
             val start = length
@@ -193,7 +188,6 @@ object ProductUi {
         layoutParams = LinearLayout.LayoutParams(dp(context, 40), dp(context, 40)).apply { marginEnd = dp(context, 16) }
     }
 
-    /** Launcher icon of an installed app, or a neutral placeholder when it is not installed. */
     fun appIcon(context: Context, packageName: String): Drawable =
         runCatching { context.packageManager.getApplicationIcon(packageName) }.getOrElse {
             android.graphics.drawable.LayerDrawable(arrayOf(rounded(context, R.color.housheng_surface_variant, 10),
@@ -354,7 +348,6 @@ object ProductUi {
         chip.setCompoundDrawablesRelative(drawable, null, null, null)
     }
 
-    /** Large numbers with a label under each, split by vertical rules. */
     fun metrics(context: Context, items: List<Pair<String, String>>): LinearLayout = if (largeText(context)) LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
         items.forEach { (value, label) ->
@@ -385,7 +378,6 @@ object ProductUi {
         layoutParams = LinearLayout.LayoutParams(-1, -2)
     }
 
-    /** White panel used for status and summaries. */
     fun panel(context: Context): LinearLayout = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
         background = rounded(context, R.color.housheng_surface, 16)
@@ -394,7 +386,6 @@ object ProductUi {
     }
 }
 
-/** Status panel for the notification service, shared by home and the notifications page. */
 class StatusPanel(context: Context, private val onAction: () -> Unit) {
     val view = ProductUi.panel(context)
     private val chip = ProductUi.chip(context)
