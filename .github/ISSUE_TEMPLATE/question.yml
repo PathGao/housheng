@@ -1,0 +1,11 @@
+name: 使用问题
+description: 问怎么用后生
+labels: [question]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: 想做什么？
+      description: 写上已经试过的办法，以及后生版本、手机型号和 Android 版本。
+    validations:
+      required: true

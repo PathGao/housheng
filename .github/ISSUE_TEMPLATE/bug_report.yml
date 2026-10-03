@@ -1,0 +1,45 @@
+name: 问题报告
+description: 后生出错或行为不符合预期
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: 一个 issue 只报一个问题。截图和日志前请遮挡个人信息，不需要提供真实通知正文。
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 发生了什么，本来应该怎样？
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      description: 写出最短的复现步骤；偶发问题请说明出现频率。
+    validations:
+      required: true
+  - type: input
+    id: status
+    attributes:
+      label: 首页显示的服务状态
+      description: 未授权、已断开、只记录或清理中。
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 后生版本
+      description: 在“关于”页查看。
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 手机型号与 Android 版本
+      placeholder: "小米 14 · HyperOS 2 · Android 15"
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 截图、日志或其他证据
