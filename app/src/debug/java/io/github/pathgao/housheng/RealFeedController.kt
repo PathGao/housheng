@@ -1,14 +1,10 @@
 package io.github.pathgao.housheng
 
-import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
-import android.view.Gravity
-import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import android.widget.TextView
 import java.util.concurrent.Executors
 
 internal data class FeedCard(val title: String, val bounds: Rect)
@@ -53,8 +49,7 @@ internal object XiaohongshuFeed {
 internal class RealFeedController(private val service: FeedService) {
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newFixedThreadPool(2)
-    private val manager = service.getSystemService(WindowManager::class.java)
-    private val masks = mutableMapOf<FeedCard, List<android.view.View>>()
+    private val masks = FeedMask(service)
     private val answers = linkedMapOf<String, String>()
     private val revealed = mutableSetOf<String>()
     private var current = emptyList<FeedCard>()
@@ -127,39 +122,14 @@ internal class RealFeedController(private val service: FeedService) {
         val root = service.rootInActiveWindow ?: return
         val valid = try { card in XiaohongshuFeed.read(root) } finally { root.recycle() }
         if (!valid) return
-        val cover = TextView(service).apply {
-            text = "后生已遮挡\n命中你的筛选规则"
-            textSize = 18f
-            gravity = Gravity.CENTER
-            setTextColor(service.getColor(R.color.housheng_text))
-            setBackgroundColor(service.getColor(R.color.housheng_primary_container))
-        }
-        val show = ProductUi.button(service, "显示这条") {
+        masks.show(card, card.bounds, "小红书") {
             if (revealed.size >= 32) revealed.remove(revealed.first())
             revealed.add(card.title)
-            masks.remove(card)?.forEach { manager.removeView(it) }
             Session.record("小红书 · 用户恢复显示")
-        }
-        val height = ProductUi.dp(service, 60)
-        fun params(rect: Rect, touchable: Boolean) = WindowManager.LayoutParams(
-            rect.width(), rect.height(), WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                (if (touchable) 0 else WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE), PixelFormat.TRANSLUCENT
-        ).apply { gravity = Gravity.TOP or Gravity.LEFT; x = rect.left; y = rect.top }
-        val added = mutableListOf<android.view.View>()
-        try {
-            manager.addView(cover, params(card.bounds, false)); added.add(cover)
-            val button = Rect(card.bounds.left + 16, card.bounds.bottom - height - 16, card.bounds.right - 16, card.bounds.bottom - 16)
-            manager.addView(show, params(button, true)); added.add(show)
-            masks[card] = added
-            Session.record("小红书 · 卡片已遮挡")
-        } catch (_: RuntimeException) {
-            added.forEach { manager.removeView(it) }
-            Session.record("小红书 · 遮挡失败，保留原内容")
         }
     }
 
-    private fun removeMasks() { masks.values.flatten().forEach { manager.removeView(it) }; masks.clear() }
+    private fun removeMasks() = masks.clear()
     fun clear() { refresh?.let(main::removeCallbacks); refresh = null; generation++; current = emptyList(); pending = emptyList(); removeMasks() }
-    fun close() { closed = true; clear(); answers.clear(); revealed.clear(); worker.shutdownNow() }
+    fun close() { closed = true; clear(); answers.clear(); revealed.clear(); worker.shutdownNow(); masks.close() }
 }
