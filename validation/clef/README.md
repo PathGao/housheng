@@ -35,11 +35,11 @@ python3 validation/clef/bridge.py
 选择明确的设备，避免误操作已运行的模拟器。手机需保持解锁：
 
 ```sh
-ANDROID_SERIAL=90bed70b sh scripts/test-device.sh --model direct
+ANDROID_SERIAL=<目标设备序列号> sh scripts/test-device.sh --model direct
 ```
 
 ```sh
-ANDROID_SERIAL=90bed70b sh scripts/test-device.sh --model usb
+ANDROID_SERIAL=<目标设备序列号> sh scripts/test-device.sh --model usb
 ```
 
 测试脚本经标准输入把电脑凭据暂存到应用私有目录，测试通过配置保存后删除暂存明文。直连测试移除18765反向转发，USB测试要求桥接健康检查通过。测试结束后开关关闭，独立验证场恢复服务。
