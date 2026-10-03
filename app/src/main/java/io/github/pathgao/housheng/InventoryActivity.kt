@@ -168,7 +168,7 @@ class InventoryActivity : Activity() {
             cell.background = shape()
             row.background = RippleDrawable(ColorStateList.valueOf(getColor(R.color.housheng_ripple)), null, shape())
             (row.getChildAt(0) as ImageView).setImageDrawable(icons[app.packageName])
-            (row.getChildAt(1) as TextView).text = ProductUi.twoLine(this@InventoryActivity, app.name, installed(app))
+            (cell.tag as ProductUi.NavRow).label.text = ProductUi.twoLine(this@InventoryActivity, app.name, installed(app))
             row.setOnClickListener { details(app) }
             cell.getChildAt(1).visibility = if (last) View.GONE else View.VISIBLE
             return cell
@@ -177,7 +177,7 @@ class InventoryActivity : Activity() {
 
     private fun appCell() = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        addView(ProductUi.navRow(context, "", leading = ColorDrawable(0)) {}.view)
+        tag = ProductUi.navRow(context, "", leading = ColorDrawable(0)) {}.also { addView(it.view) }
         addView(View(context).apply {
             background = InsetDrawable(ColorDrawable(getColor(R.color.housheng_divider)), dp(72), 0, 0, 0)
             layoutParams = LinearLayout.LayoutParams(-1, dp(1))

@@ -76,4 +76,26 @@ class PlatformValidationTest {
             assertTrue("应查询到本应用的启动器入口，实际数量=$count", includesSelf)
         } finally { onMain { activity.finish() } }
     }
+
+    @Test fun inventoryRowsRenderAtLargestFontScale() {
+        val previous = DeviceUi.shell("settings get system font_scale").trim().takeUnless { it == "null" } ?: "1.0"
+        DeviceUi.shell("settings put system font_scale 2.0")
+        try {
+            val deadline = Session.now() + 10000
+            while (context.resources.configuration.fontScale < 2f && Session.now() < deadline) Thread.sleep(50)
+            val activity = open(InventoryActivity::class.java)
+            try {
+                onMain {
+                    assertTrue(ProductUi.largeText(activity))
+                    views(activity.window.decorView).filterIsInstance<Button>().single { it.text == "读取应用清单" }.performClick()
+                }
+                var rendered = false
+                while (!rendered && Session.now() < deadline) {
+                    Thread.sleep(50)
+                    onMain { rendered = views(activity.window.decorView).filterIsInstance<TextView>().any { it.text.startsWith("后生\n") } }
+                }
+                assertTrue("大字号下应用行应正常显示", rendered)
+            } finally { onMain { activity.finish() } }
+        } finally { DeviceUi.shell("settings put system font_scale $previous") }
+    }
 }
