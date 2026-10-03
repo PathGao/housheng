@@ -63,7 +63,8 @@ jobs:
         run: |
           tools="$ANDROID_HOME/build-tools/35.0.0"
           apk=app/build/outputs/apk/release/app-release.apk
-          if "$tools/aapt2" dump permissions "$apk" | grep -q 'android.permission.INTERNET'; then
+          permissions="$("$tools/aapt2" dump permissions "$apk")"
+          if grep -q 'android.permission.INTERNET' <<< "$permissions"; then
             echo '::error::发行构建不应包含网络权限'
             exit 1
           fi
