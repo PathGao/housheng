@@ -7,44 +7,26 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import java.util.concurrent.Executors
 
-internal data class FeedCard(val title: String, val bounds: Rect)
-
-internal object XiaohongshuFeed {
-    const val PACKAGE = "com.xingin.xhs"
-    fun read(root: AccessibilityNodeInfo): List<FeedCard> {
-        if (root.packageName?.toString() != PACKAGE) return emptyList()
-        val nodes = mutableListOf<AccessibilityNodeInfo>()
-        var complete = true
-        fun walk(node: AccessibilityNodeInfo, depth: Int) {
-            if (nodes.size >= 300 || depth > 30) { complete = false; return }
-            if (!node.isVisibleToUser) return
-            nodes.add(AccessibilityNodeInfo.obtain(node))
-            for (i in 0 until node.childCount.coerceAtMost(100)) node.getChild(i)?.let {
-                try { walk(it, depth + 1) } finally { it.recycle() }
-            }
+/** Visible nodes in pre-order, root first; null when the tree is too large to read completely. */
+private fun visibleNodes(root: AccessibilityNodeInfo): List<FeedNode>? {
+    val nodes = mutableListOf<FeedNode>()
+    var complete = true
+    fun walk(node: AccessibilityNodeInfo, depth: Int) {
+        if (nodes.size >= 300 || depth > 30) { complete = false; return }
+        if (!node.isVisibleToUser) return
+        val r = Rect().also(node::getBoundsInScreen)
+        nodes.add(FeedNode(node.text?.toString().orEmpty(), node.contentDescription?.toString().orEmpty(), node.viewIdResourceName.orEmpty(),
+            node.className?.toString().orEmpty(), Box(r.left, r.top, r.right, r.bottom), node.isSelected, node.isScrollable))
+        for (i in 0 until node.childCount.coerceAtMost(100)) node.getChild(i)?.let {
+            try { walk(it, depth + 1) } finally { it.recycle() }
         }
-        try {
-            walk(root, 0)
-            if (!complete || nodes.any { it.className?.toString() in setOf("android.webkit.WebView", "android.widget.EditText") }) return emptyList()
-            if (!listOf("首页", "发现").all { label -> nodes.any { it.isSelected && it.contentDescription?.toString() == label } }) return emptyList()
-            val lists = nodes.filter { it.className?.toString() == "androidx.recyclerview.widget.RecyclerView" && it.isScrollable }
-            if (lists.size != 1) return emptyList()
-            val area = Rect().also(lists.single()::getBoundsInScreen)
-            return nodes.mapNotNull { node ->
-                val title = publicFeedTitle(node.contentDescription?.toString().orEmpty()) ?: return@mapNotNull null
-                val bounds = Rect().also(node::getBoundsInScreen)
-                if (!area.contains(bounds) || bounds.width() !in area.width() / 3..area.width() * 2 / 3 || bounds.height() < bounds.width() / 2) return@mapNotNull null
-                val protected = nodes.any { child ->
-                    val rect = Rect().also(child::getBoundsInScreen)
-                    bounds.contains(rect) && listOf(child.text, child.contentDescription).any { value ->
-                        value != null && listOf("广告", "赞助", "推广", "品牌合作").any { value.contains(it) }
-                    }
-                }
-                if (protected) null else FeedCard(title, bounds)
-            }.distinct().take(4)
-        } finally { nodes.forEach { it.recycle() } }
     }
+    walk(root, 0)
+    return nodes.takeIf { complete }
 }
+
+internal fun readFeed(root: AccessibilityNodeInfo): List<FeedCard> =
+    RealFeeds.read(root.packageName?.toString().orEmpty(), visibleNodes(root) ?: emptyList())
 
 internal class RealFeedController(private val service: FeedService) {
     private val main = Handler(Looper.getMainLooper())
@@ -59,12 +41,16 @@ internal class RealFeedController(private val service: FeedService) {
     private var closed = false
     private var observedAt = 0L
     private var refresh: Runnable? = null
-    private val supportedVersion by lazy {
-        runCatching { service.packageManager.getPackageInfo(XiaohongshuFeed.PACKAGE, 0).versionName == "9.49.0" }.getOrDefault(false)
+    private var source = ""
+    private val label get() = AppCatalog.sources[source] ?: source
+    private val versions = mutableMapOf<String, Boolean>()
+    private fun supported(pkg: String) = versions.getOrPut(pkg) {
+        runCatching { RealFeeds.supports(pkg, service.packageManager.getPackageInfo(pkg, 0).versionName) }.getOrDefault(false)
     }
 
     fun observe(root: AccessibilityNodeInfo, event: AccessibilityEvent): Boolean {
-        if (root.packageName?.toString() != XiaohongshuFeed.PACKAGE || !ModelValidation.realEnabled || !supportedVersion) { clear(); return false }
+        val pkg = root.packageName?.toString().orEmpty()
+        if (pkg !in ModelValidation.realEnabled || !supported(pkg)) { clear(); return false }
         if (event.eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
             clear()
             refresh = Runnable {
@@ -75,18 +61,19 @@ internal class RealFeedController(private val service: FeedService) {
             }.also { main.postDelayed(it, 120) }
             return true
         }
-        val cards = XiaohongshuFeed.read(root)
-        if (cards == current) return true
+        val cards = readFeed(root)
+        if (cards == current && pkg == source) return true
         removeMasks()
+        source = pkg
         current = cards
         pending = cards
         observedAt = Session.now()
         generation++
         if (cards.isEmpty()) return true
-        Session.record("小红书发现页 · ${cards.size} 张可读取卡片")
+        Session.record("$label · ${cards.size} 条可读取内容")
         val rules = Preferences(service).classifier()
         val localMatches = cards.filter { rules.classify(it.title) == Decision.SKIP }
-        if (localMatches.isNotEmpty()) Session.record("小红书 · 本地规则命中 ${localMatches.size} 张")
+        if (localMatches.isNotEmpty()) Session.record("$label · 本地规则命中 ${localMatches.size} 条")
         pending = pending.filterNot { it in localMatches }
         cards.filter { it in localMatches || answers[it.title] == "filter" }.forEach(::mask)
         next()
@@ -105,12 +92,12 @@ internal class RealFeedController(private val service: FeedService) {
             main.post {
                 busy--
                 if (closed) return@post
-                if (generation == token && ModelValidation.realEnabled) {
+                if (generation == token && source in ModelValidation.realEnabled) {
                     if (answers.size >= 32) answers.remove(answers.keys.first())
                     answers[card.title] = answer
-                    Session.record("小红书 Clef · $answer · ${Session.now() - started}ms")
+                    Session.record("$label Clef · $answer · ${Session.now() - started}ms")
                     if (answer == "filter" && Session.now() - observedAt < 3000) mask(card)
-                } else Session.record("小红书 · 页面变化，丢弃旧判断")
+                } else Session.record("$label · 页面变化，丢弃旧判断")
                 next()
             }
         }
@@ -118,14 +105,15 @@ internal class RealFeedController(private val service: FeedService) {
     }
 
     private fun mask(card: FeedCard) {
-        if (!Session.feedExecution || card.title in revealed || card in masks || !ModelValidation.realEnabled) return
+        if (!Session.feedExecution || card.title in revealed || card in masks || source !in ModelValidation.realEnabled) return
         val root = service.rootInActiveWindow ?: return
-        val valid = try { card in XiaohongshuFeed.read(root) } finally { root.recycle() }
+        val valid = try { card in readFeed(root) } finally { root.recycle() }
         if (!valid) return
-        masks.show(card, card.bounds, "小红书") {
+        val label = label
+        masks.show(card, card.box.let { Rect(it.left, it.top, it.right, it.bottom) }, label) {
             if (revealed.size >= 32) revealed.remove(revealed.first())
             revealed.add(card.title)
-            Session.record("小红书 · 用户恢复显示")
+            Session.record("$label · 用户恢复显示")
         }
     }
 

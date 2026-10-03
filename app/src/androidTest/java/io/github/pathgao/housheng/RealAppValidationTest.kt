@@ -26,7 +26,7 @@ class RealAppValidationTest {
             instrumentation.runOnMainSync {
             Session.stop(); Session.clear()
             prefs.saveRules("")
-            ModelValidation.realEnabled = true
+            ModelValidation.realEnabled = setOf(RealFeeds.XIAOHONGSHU)
             Session.feedExecution = true
             FeedMask.liveBlurAllowed = prefix.isEmpty()
             }
@@ -42,7 +42,7 @@ class RealAppValidationTest {
             Thread.sleep(4000)
             instrumentation.sendStatus(0, Bundle().apply { putString("realFeed", Session.journal()) })
             val root = DeviceUi.automation.rootInActiveWindow ?: error("No public feed")
-            val card = try { XiaohongshuFeed.read(root).first() } finally { root.recycle() }
+            val card = try { readFeed(root).first() } finally { root.recycle() }
             snap("before")
             instrumentation.runOnMainSync {
                 prefs.saveRules(card.title)
@@ -91,7 +91,7 @@ class RealAppValidationTest {
                 return null
             }
             val before = DeviceUi.automation.rootInActiveWindow ?: error("No feed before scroll")
-            val oldTitles = try { XiaohongshuFeed.read(before).map { it.title } } finally { before.recycle() }
+            val oldTitles = try { readFeed(before).map { it.title } } finally { before.recycle() }
             instrumentation.runOnMainSync { prefs.saveRules(""); Session.clear() }
             val scrollRoot = DeviceUi.automation.rootInActiveWindow ?: error("No feed")
             val list = try { listNode(scrollRoot) } finally { scrollRoot.recycle() }
@@ -102,7 +102,7 @@ class RealAppValidationTest {
             while (Session.now() < scrollEnd) {
                 val latest = DeviceUi.automation.rootInActiveWindow
                 if (latest != null) try {
-                    val titles = XiaohongshuFeed.read(latest).map { it.title }
+                    val titles = readFeed(latest).map { it.title }
                     changed = titles.isNotEmpty() && titles != oldTitles
                 } finally { latest.recycle() }
                 instrumentation.runOnMainSync { resumed = Session.journal().contains("小红书 Clef ·") }
@@ -116,7 +116,7 @@ class RealAppValidationTest {
             assertNull("Leaving the feed must remove overlays", revealNode())
             instrumentation.sendStatus(0, Bundle().apply { putString("realScroll", "Real list advanced, Clef resumed, overlays cleared on app switch") })
         } finally {
-            instrumentation.runOnMainSync { Session.stop(); ModelValidation.realEnabled = false; FeedMask.liveBlurAllowed = true }
+            instrumentation.runOnMainSync { Session.stop(); ModelValidation.realEnabled = emptySet(); FeedMask.liveBlurAllowed = true }
             assertTrue(instrumentation.targetContext.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE).edit().putString("rules", originalRules).commit())
         }
     }
