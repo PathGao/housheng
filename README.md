@@ -25,20 +25,68 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/home.png" width="300" alt="后生首页：通知清理状态、最近 7 天次数和功能入口">
+  <img src="design/ui/screenshots/01-home.png" width="200" alt="首页：通知清理状态和最近 7 天次数">
+  <img src="design/ui/screenshots/02-notifications.png" width="200" alt="通知清理：选择要管理的应用">
+  <img src="design/ui/screenshots/05-report.png" width="200" alt="家庭报告：7 天或 30 天的次数汇总">
+  <img src="design/ui/screenshots/07-apps.png" width="200" alt="应用清单：近 30 天新装的应用单独列出">
 </p>
 
 爸妈的手机每天响几十次，哪些是推广、哪些是正事，他们分不清，你又不在身边。后生先帮你们**看清**通知从哪来、有多频繁，再由爸妈自己决定清理什么。孩子只看报告、给建议，不远程控制。
 
 ## 能做什么
 
-| 问题 | 后生的做法 |
-|---|---|
-| 不知道哪个应用总在发通知 | 勾选要管理的应用，查看最近 7 天或 30 天的次数与处理汇总 |
-| 想少看推广，又怕漏掉正事 | 自设清理关键词，可让某个来源始终放行。电话、消息、闹钟和常驻通知始终保留 |
-| 孩子想帮忙，但不在身边 | 爸妈预览后复制或分享家庭报告，孩子据此建议怎么调 |
-| 不知道手机最近装了什么 | 查看有桌面入口的应用，标出近 30 天新装的，可跳到系统详情由本人决定是否卸载 |
-| 想马上停下 | 首页点“暂停自动清理”，记录保留 |
+### 一眼看清现在怎样
+
+首页最上方是状态面板，只用四个词：**未授权**、**已断开**、**只记录**、**清理中**。每个状态同时有图标、文字和底色，需要动手时才出现按钮。下面是最近 7 天收到、请求清理和受保护的次数。想马上停下，点“暂停自动清理”，记录保留。
+
+<p align="center">
+  <img src="design/ui/screenshots/01-home.png" width="220" alt="首页，只记录状态">
+  <img src="design/ui/screenshots/09-home-unauthorized.png" width="220" alt="首页，未授权时提示去系统设置允许">
+</p>
+
+### 按应用管理，按关键词清理
+
+勾选要管理的应用，每个应用显示最近 7 天的次数。点应用可以设为始终放行，或跳到系统通知设置。清理规则是自己填的关键词，电话、短信、闹钟和常驻通知始终保留。
+
+<p align="center">
+  <img src="design/ui/screenshots/02-notifications.png" width="220" alt="通知清理页">
+  <img src="design/ui/screenshots/04-app-dialog.png" width="220" alt="单个应用：管理、始终放行、系统通知设置">
+  <img src="design/ui/screenshots/03-notifications-lower.png" width="220" alt="清理关键词">
+</p>
+
+### 家庭报告
+
+选最近 7 天或 30 天，看各应用的次数。报告先在手机上预览，再由爸妈自己复制或分享给家人，孩子据此建议怎么调。
+
+<p align="center">
+  <img src="design/ui/screenshots/05-report.png" width="220" alt="家庭报告">
+  <img src="design/ui/screenshots/06-report-lower.png" width="220" alt="分享内容与清空历史">
+</p>
+
+### 手机里装了什么
+
+主动读取有桌面入口的应用，近 30 天新装的单独列出。点应用可打开系统详情，卸载与否由本人决定。
+
+<p align="center">
+  <img src="design/ui/screenshots/07-apps.png" width="220" alt="应用清单">
+  <img src="design/ui/screenshots/08-about.png" width="220" alt="后生会做什么：会做的事、不会做的事和还没开放的功能">
+</p>
+
+### 为长辈设计
+
+- 正文 18sp，按钮和主要控件高 60dp，对比度都在 4.5:1 以上。
+- 跟随系统字号。字号超过 130% 时，标签和数值改为上下排列，不会一个字一行。
+- 状态不只靠颜色区分，灰度下也能分辨。
+- 版式和系统设置一致：分组列表，整行可点，← 返回。
+
+参考了 Material 3、Apple HIG 和工信部《移动互联网应用（APP）适老化通用设计规范》。完整规则、设计稿和实机截图见 [界面规范](design/ui/README.md)。
+
+<p align="center">
+  <img src="design/ui/screenshots/10-home-font200.png" width="220" alt="系统字号 200% 时的首页">
+  <img src="design/ui/screenshots/11-report-font200.png" width="220" alt="系统字号 200% 时的家庭报告">
+</p>
+
+截图来自 Android 13 模拟器，数字是演示数据。
 
 > [!NOTE]
 > 抖音、快手、小红书的信息流筛选**尚未开放**。AI 判断与自动下滑只在独立验证场跑通，见 [模型管线验证](docs/laya-validation.md)。
@@ -91,7 +139,7 @@
 
 | 目录 / 文档 | 内容 |
 |---|---|
-| `app/` | 主程序：通知管理、家庭报告、应用清单 |
+| `app/` | 主程序：通知清理、家庭报告、应用清单 |
 | `fixture/` | 合成验证场，测试翻页与保护边界 |
 | `validation/laya/` | 本机模型桥接与固定决策协议，见 [说明](validation/laya/README.md) |
 | [设备验证](docs/device-validation.md) | 真机测试步骤与结果，入口 `scripts/test-device.sh` |
