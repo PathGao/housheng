@@ -84,4 +84,4 @@ jobs:
       - name: 运行无模型依赖的协议与指标测试
         run: python -m unittest discover -s validation/clef -p 'test_*.py' -v
       - name: 检查 Shell 入口语法
-        run: sh -n scripts/build-local.sh scripts/test-device.sh
+        run: for f in scripts/*.sh; do sh -n "$f"; done

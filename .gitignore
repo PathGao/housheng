@@ -2,6 +2,10 @@
 .gradle/
 .gradle-home/
 .kotlin/
+.claude/worktrees/
+.idea/
+*.iml
+*.hprof
 **/build/
 local.properties
 artifacts/

@@ -28,7 +28,7 @@ scripts/build-local.sh :app:assembleDebug :app:assembleDebugAndroidTest :fixture
 "$adb" install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 "$adb" install -r fixture/build/outputs/apk/androidTest/debug/fixture-debug-androidTest.apk
 if [ "${1:-}" = "--model" ]; then
-  python3 validation/clef/install_test_config.py
+  ADB="$adb" python3 validation/clef/install_test_config.py
 fi
 # Notification permission is granted through the fixture's normal system prompt.
 # Xiaomi may deny shell permission grants even when USB debugging is enabled.

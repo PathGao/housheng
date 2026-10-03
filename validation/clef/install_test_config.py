@@ -6,7 +6,7 @@ from client import ClefClient
 
 client = ClefClient()
 account = client.url.split("/accounts/", 1)[1].split("/", 1)[0]
-adb = ".tools/android-sdk/platform-tools/adb"
+adb = os.environ.get("ADB", ".tools/android-sdk/platform-tools/adb")
 args = [adb]
 if os.environ.get("ANDROID_SERIAL"):
     args += ["-s", os.environ["ANDROID_SERIAL"]]
