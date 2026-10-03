@@ -4,7 +4,6 @@ import android.widget.LinearLayout
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.UUID
 
 internal class ModelHttpException(val status: Int) : java.io.IOException("HTTP $status")
 
@@ -40,17 +39,6 @@ internal fun postModelJson(url: String, body: JSONObject, timeoutMs: Int, token:
     } finally { connection.disconnect() }
 }
 
-class LoopbackModelClient(private val port: Int = 18765, private val timeoutMs: Int = 2800) {
-    fun classify(text: String): String {
-        require(text.isNotBlank() && text.length <= 4000)
-        val requestId = UUID.randomUUID().toString()
-        val body = JSONObject().put("request_id", requestId).put("source", Session.FIXTURE).put("text", text)
-        val result = postModelJson("http://127.0.0.1:$port/v1/classify", body, timeoutMs)
-        check(result.getString("request_id") == requestId) { "mismatched request" }
-        return result.getString("decision").also { check(it in setOf("keep", "filter", "uncertain")) { "unknown decision" } }
-    }
-}
-
 object ModelValidation {
     /** Real apps the user confirmed one by one; kept in memory only, so every process start begins with all of them off. */
     var realEnabled = emptySet<String>()
@@ -61,15 +49,12 @@ object ModelValidation {
 
     fun maxAgeMs(source: String): Long = if (enabled && source == Session.FIXTURE) 3000 else 500
 
-    fun classify(context: android.content.Context, text: String): String =
-        if (ClefCredentials(context).direct) ClefApiClient(context).classify(text) else LoopbackModelClient().classify(text)
-
     fun classifier(source: String, fallback: Classifier): Classifier {
         if (!enabled || source != Session.FIXTURE) return fallback
         return Classifier { text ->
             val started = Session.now()
             try {
-                val result = classify(FeedService.instance ?: error("page service disconnected"), text)
+                val result = ModelTransport.classify(FeedService.instance ?: error("page service disconnected"), text)
                 Session.record("模型 · $result · ${Session.now() - started}ms")
                 if (result == "filter") Decision.SKIP else Decision.KEEP
             } catch (error: Exception) {

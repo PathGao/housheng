@@ -7,7 +7,6 @@ import android.text.InputFilter
 import android.text.InputType
 import android.view.WindowManager
 import android.widget.EditText
-import android.widget.Toast
 
 class ClefSettingsActivity : Activity() {
     private var testing = false
@@ -16,15 +15,8 @@ class ClefSettingsActivity : Activity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         val store = ClefCredentials(this)
         val body = ProductUi.page(this, "Clef API 配置").body
-        body.addView(ProductUi.text(this, "手机直连会将已启用来源的内容文字发送给 Cloudflare。凭据在本机加密保存。USB 模式由电脑调用 API，手机无需访问 Cloudflare。", Type.SUPPORT))
-        val direct = ProductUi.switchRow(this, "手机独立调用 API", "关闭后通过 USB 电脑调用").apply {
-            isChecked = store.direct
-            setOnCheckedChangeListener { _, checked ->
-                runCatching { store.direct = checked; FeedService.instance?.invalidate() }
-                    .onFailure { Toast.makeText(this@ClefSettingsActivity, "模式保存失败", Toast.LENGTH_LONG).show() }
-            }
-        }
-        body.addView(ProductUi.group(this).apply { addView(direct) })
+        body.addView(ProductUi.text(this, "手机直连会将已启用来源的内容文字发送给 Cloudflare。凭据在本机加密保存。", Type.SUPPORT))
+        ModelTransport.addControls(body)
         body.addView(ProductUi.text(this, "Account ID", Type.SUPPORT))
         val account = EditText(this).apply {
             hint = "32 位 Account ID"
@@ -59,11 +51,11 @@ class ClefSettingsActivity : Activity() {
             val application = applicationContext
             Thread {
                 val started = Session.now()
-                val result = runCatching { ModelValidation.classify(application, "这条消息必须转发二十个群，不转发的家庭一定会遭灾！") }
+                val result = runCatching { ModelTransport.classify(application, "这条消息必须转发二十个群，不转发的家庭一定会遭灾！") }
                 runOnUiThread {
                     testing = false
                     if (!isDestroyed) status.text = result.fold(
-                        { "${if (store.direct) "手机直连" else "USB 电脑"} · $it · ${Session.now() - started}ms" },
+                        { "${if (ModelTransport.direct(application)) "手机直连" else "USB 电脑"} · $it · ${Session.now() - started}ms" },
                         { when (it) {
                             is ModelHttpException -> "API 返回 HTTP ${it.status}，请检查凭据、权限与账户额度"
                             is java.net.SocketTimeoutException -> "请求超时，页面将保留，请检查网络后重试"

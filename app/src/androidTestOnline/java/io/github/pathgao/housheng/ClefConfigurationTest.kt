@@ -14,7 +14,7 @@ class ClefConfigurationTest {
         val config = try { JSONObject(file.readText()) } finally { file.delete() }
         val store = ClefCredentials(context)
         store.save(config.getString("account"), config.getString("token"))
-        store.direct = InstrumentationRegistry.getArguments().getString("modelTransport") == "direct"
+        ModelTransport.setDirect(context, InstrumentationRegistry.getArguments().getString("modelTransport") == "direct")
         val loaded = ClefCredentials(context).load()
         assertEquals(config.getString("account"), loaded?.first)
         assertTrue("encrypted credentials must round-trip", loaded?.second == config.getString("token"))

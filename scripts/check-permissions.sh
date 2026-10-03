@@ -1,5 +1,5 @@
 #!/bin/sh
-# Release permission contract: offline requests nothing, online only INTERNET. Any other change must be reviewed here.
+# Release contract: offline requests nothing, online only INTERNET and no cleartext config (the USB bridge is debug-only).
 # usage: scripts/check-permissions.sh <aapt2> <offline.apk> <online.apk>
 set -eu
 check() {
@@ -13,3 +13,8 @@ check() {
 check "$1" "$2" "package: io.github.pathgao.housheng"
 check "$1" "$3" "package: io.github.pathgao.housheng.online
 uses-permission: name='android.permission.INTERNET'"
+manifest=$("$1" dump xmltree --file AndroidManifest.xml "$3")
+if printf '%s' "$manifest" | grep -q networkSecurityConfig; then
+  printf '::error::%s 不应带 networkSecurityConfig\n' "$3"
+  exit 1
+fi
