@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: 签名发行包并创建 Release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: 获取源码
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 配置 Java 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: 配置 Gradle 缓存并校验 Wrapper
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
+      - name: 安装 Android 35 工具链
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"'
+      - name: 核对标签与 versionName
+        shell: bash
+        run: |
+          version="$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' app/build.gradle.kts)"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::标签 $GITHUB_REF_NAME 与 versionName $version 不一致"
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - name: 还原签名密钥
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.HOUSHENG_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo '::error::缺少 HOUSHENG_KEYSTORE_BASE64'
+            exit 1
+          fi
+          base64 -d <<< "$KEYSTORE_BASE64" > "$RUNNER_TEMP/release.jks"
+          echo "HOUSHENG_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+      - name: 测试、静态检查与签名构建
+        env:
+          HOUSHENG_KEYSTORE_PASSWORD: ${{ secrets.HOUSHENG_KEYSTORE_PASSWORD }}
+          HOUSHENG_KEY_ALIAS: ${{ secrets.HOUSHENG_KEY_ALIAS }}
+          HOUSHENG_KEY_PASSWORD: ${{ secrets.HOUSHENG_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleRelease
+      - name: 检查权限与签名并计算校验和
+        shell: bash
+        run: |
+          tools="$ANDROID_HOME/build-tools/35.0.0"
+          apk=app/build/outputs/apk/release/app-release.apk
+          if "$tools/aapt2" dump permissions "$apk" | grep -q 'android.permission.INTERNET'; then
+            echo '::error::发行构建不应包含网络权限'
+            exit 1
+          fi
+          "$tools/apksigner" verify --print-certs "$apk"
+          mkdir dist
+          cp "$apk" "dist/housheng-$VERSION.apk"
+          (cd dist && sha256sum "housheng-$VERSION.apk" > SHA256SUMS && cat SHA256SUMS)
+      - name: 创建 GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes=docs/releases/$VERSION.md
+          [ -f "$notes" ] || notes="docs/releases/${VERSION%%-*}.md"
+          args=(--title "后生 $VERSION")
+          if [ -f "$notes" ]; then args+=(--notes-file "$notes"); else args+=(--generate-notes); fi
+          if [[ "$VERSION" == *-* ]]; then args+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" "${args[@]}" \
+            "dist/housheng-$VERSION.apk" dist/SHA256SUMS
+      - name: 删除签名密钥
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"

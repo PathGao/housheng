@@ -46,8 +46,6 @@
 scripts/test-device.sh --model
 ```
 
-原始[真机日志](../artifacts/model-validation/device-test.log)、[修复前失败记录](../artifacts/model-validation/latest-page-before-fix.log)和[服务恢复记录](../artifacts/model-validation/service-recovery.log)留在本地忽略的artifacts目录。已安装的新调试APK副本为`artifacts/housheng-0.2.0-model-validation.apk`，验证场为`artifacts/housheng-model-fixture.apk`。
-
 ## 模型基线记录
 
 固定代码、权重和依赖，首次下载后用离线模式完成推理。原始样本、规则、SHA256、逐条结果、CPU对照和环境记录在[validation/laya](../validation/laya/README.md)。
