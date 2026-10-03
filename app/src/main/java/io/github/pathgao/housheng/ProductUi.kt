@@ -106,8 +106,12 @@ object ProductUi {
         page.root.addView(LinearLayout(activity).apply {
             setBackgroundColor(color(activity, R.color.housheng_surface))
             setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12))
+            // Side by side, large text breaks short labels one character per line; stack them instead.
+            val stacked = largeText(activity)
+            if (stacked) orientation = LinearLayout.VERTICAL
             actions.forEachIndexed { index, (button, weight) ->
-                button.layoutParams = LinearLayout.LayoutParams(0, -2, weight).apply { if (index > 0) marginStart = dp(activity, 12) }
+                button.layoutParams = if (stacked) LinearLayout.LayoutParams(-1, -2).apply { if (index > 0) topMargin = dp(activity, 12) }
+                else LinearLayout.LayoutParams(0, -2, weight).apply { if (index > 0) marginStart = dp(activity, 12) }
                 addView(button)
             }
         })
