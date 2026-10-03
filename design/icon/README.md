@@ -4,7 +4,7 @@
 
 ![后生](../../app/src/main/res/drawable-nodpi/ic_housheng.png)
 
-原稿即 Android 使用的 PNG，只有一份。自适应图标通过原生 Drawable 留出裁切边距，不重绘原图，不预切圆角。前景与背景配置见 `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`。
+原稿即 Android 使用的 PNG，只有一份。自适应图标通过原生 Drawable 留出裁切边距，不重绘原图，不预切圆角。前景与背景配置见 `app/src/main/res/mipmap-anydpi/ic_launcher.xml`。
 
 `housheng-rounded.png`（512×512，圆角半径 22.37%，透明角）只用于 README 和商店展示。启动器图标仍走自适应图标，圆角由系统裁切。
 

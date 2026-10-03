@@ -63,7 +63,7 @@ internal class RealFeedController(private val service: FeedService) {
         }
         val cards = readFeed(root)
         if (cards == current && pkg == source) return true
-        removeMasks()
+        masks.clear()
         source = pkg
         current = cards
         pending = cards
@@ -117,7 +117,6 @@ internal class RealFeedController(private val service: FeedService) {
         }
     }
 
-    private fun removeMasks() = masks.clear()
-    fun clear() { refresh?.let(main::removeCallbacks); refresh = null; generation++; current = emptyList(); pending = emptyList(); removeMasks() }
+    fun clear() { refresh?.let(main::removeCallbacks); refresh = null; generation++; current = emptyList(); pending = emptyList(); masks.clear() }
     fun close() { closed = true; clear(); answers.clear(); revealed.clear(); worker.shutdownNow(); masks.close() }
 }
