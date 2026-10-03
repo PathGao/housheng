@@ -8,8 +8,14 @@ else
   adb=adb
 fi
 classes=io.github.pathgao.housheng.DeviceValidationTest,io.github.pathgao.housheng.SessionPreferencesTest,io.github.pathgao.housheng.PlatformValidationTest,io.github.pathgao.housheng.ReportStoreTest,io.github.pathgao.housheng.ProductFlowTest
+case "${HOUSHENG_FLAVOR:-online}" in
+  online) flavor=online Flavor=Online app=io.github.pathgao.housheng.online ;;
+  offline) flavor=offline Flavor=Offline app=io.github.pathgao.housheng ;;
+  *) echo "HOUSHENG_FLAVOR must be online or offline" >&2; exit 2 ;;
+esac
 transport=${2:-usb}
 if [ "${1:-}" = "--model" ]; then
+  [ "$flavor" = online ] || { echo "--model needs the online build" >&2; exit 2; }
   case "$transport" in direct|usb) ;; *) echo "transport must be direct or usb" >&2; exit 2 ;; esac
   if [ "$transport" = usb ]; then
     python3 -c 'import json, urllib.request; r=json.load(urllib.request.urlopen("http://127.0.0.1:18765/health", timeout=2)); assert r["ready"] and r["model"] == "clef-flash"'
@@ -22,12 +28,10 @@ elif [ "$#" -gt 0 ]; then
   echo "usage: scripts/test-device.sh [--model [direct|usb]]" >&2
   exit 2
 fi
-# The online build contains every test class, including the model ones.
-app=io.github.pathgao.housheng.online
-scripts/build-local.sh :app:assembleOnlineDebug :app:assembleOnlineDebugAndroidTest :fixture:assembleDebug :fixture:assembleDebugAndroidTest --console=plain
-"$adb" install -r app/build/outputs/apk/online/debug/app-online-debug.apk
+scripts/build-local.sh ":app:assemble${Flavor}Debug" ":app:assemble${Flavor}DebugAndroidTest" :fixture:assembleDebug :fixture:assembleDebugAndroidTest --console=plain
+"$adb" install -r "app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk"
 "$adb" install -r fixture/build/outputs/apk/debug/fixture-debug.apk
-"$adb" install -r app/build/outputs/apk/androidTest/online/debug/app-online-debug-androidTest.apk
+"$adb" install -r "app/build/outputs/apk/androidTest/$flavor/debug/app-$flavor-debug-androidTest.apk"
 "$adb" install -r fixture/build/outputs/apk/androidTest/debug/fixture-debug-androidTest.apk
 if [ "${1:-}" = "--model" ]; then
   ADB="$adb" python3 validation/clef/install_test_config.py

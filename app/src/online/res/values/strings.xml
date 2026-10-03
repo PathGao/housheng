@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">后生 AI</string>
+    <string name="notification_service_label">后生 AI 通知观察</string>
+    <string name="page_service_label">后生 AI 页面观察</string>
     <string name="accessibility_description">只读取名单内已适配的信息流。小红书、抖音、抖音极速版、快手、快手极速版需在设置与诊断里逐个开启，默认都不读取。浏览器、聊天与账号页不采集。验证截图由你主动触发，可随时停止服务。应用清单查询不授予内容访问权限。</string>
     <string name="about_pending">小红书、抖音、快手及所列极速版的信息流筛选还在试验，默认关闭，需在设置与诊断里逐个开启。开启后公开标题或视频文案会发送给 Cloudflare Clef，图片、画面和私信不上传。</string>
     <string name="diagnostics_intro">日常规则使用本地关键词。可配置 Clef API，并逐个启用小红书、抖音、抖音极速版、快手、快手极速版的信息流筛选。</string>

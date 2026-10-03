@@ -62,8 +62,11 @@ internal object DeviceUi {
 
 /** [app] is the Housheng package under test; the offline and online builds install side by side. */
 internal class DevicePreparation(private val app: String = InstrumentationRegistry.getInstrumentation().targetContext.packageName) {
-    private fun bound(): Boolean = DeviceUi.shell("dumpsys accessibility").lineSequence()
-        .any { it.contains("Bound services:") && it.contains("后生页面观察") }
+    // Mirrors page_service_label in main and online strings.xml; the label is what dumpsys and Settings show.
+    private val service = if (app.endsWith(".online")) "后生 AI 页面观察" else "后生页面观察"
+    // A bound service entry may span several lines, so read the whole block up to the enabled list.
+    private fun bound(): Boolean = DeviceUi.shell("dumpsys accessibility")
+        .substringAfter("Bound services:", "").substringBefore("Enabled services:").contains(service)
 
     private fun waitBound(): Boolean {
         repeat(40) { if (bound()) return true; Thread.sleep(250) }
@@ -91,20 +94,20 @@ internal class DevicePreparation(private val app: String = InstrumentationRegist
         }
         // MIUI denies shell secure-settings writes unless "USB 调试（安全设置）" is on, so toggle the service in
         // Settings instead. The texts below, including the risk dialog, are zh-CN MIUI strings seen on Xiaomi 10S, Android 13.
-        if (DeviceUi.settingsText().contains("要停用“后生页面观察”吗")) DeviceUi.click("取消")
+        if (DeviceUi.settingsText().contains("要停用“$service”吗")) DeviceUi.click("取消")
         DeviceUi.shell("am start -W -f 0x10008000 -a android.settings.ACCESSIBILITY_SETTINGS")
         if (!DeviceUi.waitClick("已下载的应用")) throw AssertionError(DeviceUi.settingsText())
-        if (!DeviceUi.waitClick("后生页面观察")) throw AssertionError(DeviceUi.settingsText())
-        assertTrue(DeviceUi.waitClick("使用“后生页面观察”"))
+        if (!DeviceUi.waitClick(service)) throw AssertionError(DeviceUi.settingsText())
+        assertTrue(DeviceUi.waitClick("使用“$service”"))
         var handledStop = false
         var handledWarning = false
         val deadline = android.os.SystemClock.elapsedRealtime() + 30000
         while (android.os.SystemClock.elapsedRealtime() < deadline) {
             val text = DeviceUi.settingsText()
-            if (!handledStop && text.contains("要停用“后生页面观察”吗")) {
+            if (!handledStop && text.contains("要停用“$service”吗")) {
                 assertTrue(DeviceUi.waitClick("停止"))
                 Thread.sleep(500)
-                assertTrue(DeviceUi.waitClick("使用“后生页面观察”"))
+                assertTrue(DeviceUi.waitClick("使用“$service”"))
                 handledStop = true
             } else if (!handledWarning && text.contains("高度敏感权限")) {
                 assertTrue(DeviceUi.waitClick("我已知晓可能存在的风险，并自愿承担可能导致的后果"))
