@@ -7,4 +7,5 @@
     <color name="housheng_on_accent">#FFFFFF</color>
     <color name="housheng_outline">#69857C</color>
     <color name="housheng_ripple">#3369857C</color>
+    <color name="housheng_icon_background">#B9F2EC</color>
 </resources>
