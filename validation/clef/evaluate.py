@@ -54,7 +54,7 @@ def main():
         "started_at": datetime.now(timezone.utc).isoformat(), "synthetic_only": True,
         "split": args.split, "repeats": args.repeats, "model": MODEL,
         "dataset_sha256": digest(HERE / "cases.json"),
-        "questions_sha256": digest(HERE.parents[1] / "app/src/debug/assets/clef-questions.json"),
+        "questions_sha256": digest(HERE.parents[1] / "app/src/online/assets/clef-questions.json"),
         "python": platform.python_version(), "platform": platform.platform(), "rows": [],
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

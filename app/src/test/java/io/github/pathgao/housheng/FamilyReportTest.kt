@@ -16,7 +16,7 @@ class FamilyReportTest {
         assertTrue(report.contains("暂无记录，不代表手机没有收到通知"))
         assertTrue(report.contains("仅覆盖已勾选来源"))
         assertTrue(report.contains("更新"))
-        assertTrue(report.contains("未接入模型"))
+        assertTrue(report.contains("不含信息流内容"))
         assertTrue(report.contains("震惊内幕"))
     }
 

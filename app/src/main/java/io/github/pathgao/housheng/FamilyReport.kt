@@ -64,5 +64,5 @@ fun formatFamilyReport(
         if (service != null && event != null) appendLine("${time(entry.at)} $service$event")
     }
     appendLine()
-    append("统计边界：本机保存最近 30 天通知汇总，不保存通知标题、正文或逐条浏览轨迹。未接入模型，真实应用信息流尚未适配，暂无真实内容话题统计。")
+    append("统计边界：本机保存最近 30 天通知汇总，不保存通知标题、正文或逐条浏览轨迹。不含信息流内容与话题统计。")
 }

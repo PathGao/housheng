@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">后生 AI</string>
+    <string name="accessibility_description">只读取名单内已适配的信息流。小红书、抖音、抖音极速版、快手、快手极速版需在设置与诊断里逐个开启，默认都不读取。浏览器、聊天与账号页不采集。验证截图由你主动触发，可随时停止服务。应用清单查询不授予内容访问权限。</string>
+    <string name="about_pending">小红书、抖音、快手及所列极速版的信息流筛选还在试验，默认关闭，需在设置与诊断里逐个开启。开启后公开标题或视频文案会发送给 Cloudflare Clef，图片、画面和私信不上传。</string>
+    <string name="diagnostics_intro">日常规则使用本地关键词。可配置 Clef API，并逐个启用小红书、抖音、抖音极速版、快手、快手极速版的信息流筛选。</string>
+    <string name="diagnostics_accessibility">只允许读取名单中已适配的信息流页。小红书、抖音、快手及所列极速版需在本页下方单独开启。浏览器、聊天、账号等页面不采集。截图仅在验证场手动预约。</string>
+    <string name="diagnostics_sources">首批名单：抖音、快手、小红书及所列极速版。浏览器、微信、QQ和名单外应用不采集。下方页面选项用于验证场。真实应用筛选在本页下方逐个确认开启，应用清单不会授权内容读取。</string>
+    <string name="diagnostics_statistics">模型仅返回保留、过滤或不确定，不输出话题，内容记为未分类。真实应用实验筛选暂不计入话题统计。</string>
+    <string name="report_feed_state">真实应用筛选为实验功能，默认关闭。</string>
+</resources>

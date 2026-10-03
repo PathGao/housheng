@@ -4,7 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 
 class AboutActivity : Activity() {
-    private val sections = listOf(
+    private val sections by lazy { listOf(
         "会做的事" to listOf(
             "只处理你选的应用发来的通知。",
             "按天记录通知次数，保存最近 30 天。",
@@ -17,13 +17,13 @@ class AboutActivity : Activity() {
             "不跳过广告，不自动卸载应用。"
         ),
         "还没开放" to listOf(
-            "抖音、快手仍未开放。调试版可另行启用小红书发现页标题筛选，标题会发送给 Cloudflare Clef，图片和私信不上传。"
+            getString(R.string.about_pending)
         ),
         "需要知道的" to listOf(
             "清理在通知到达后进行，已经响起的提示音无法撤回。",
             "想彻底关闭某个应用的通知，用系统通知设置。"
         )
-    )
+    ) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

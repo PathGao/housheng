@@ -11,6 +11,12 @@ android {
         versionName = "0.2.3-clef-preview"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    // offline 不带网络权限；online 加 Clef 与真实应用筛选，包名不同，两版可同时安装。
+    flavorDimensions += "network"
+    productFlavors {
+        create("offline") { dimension = "network" }
+        create("online") { dimension = "network"; applicationIdSuffix = ".online" }
+    }
     // 发行签名只从环境变量读取，缺省时 assembleRelease 产出未签名包，CI 照常通过。
     val keystorePath = System.getenv("HOUSHENG_KEYSTORE_PATH")
     if (keystorePath != null) {

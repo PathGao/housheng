@@ -72,7 +72,7 @@ class ClefSettingsActivity : Activity() {
                 }
             }.start()
         })
-        body.addView(ProductUi.text(this, "模型固定为 clef-flash。连接成功后，在设置与诊断选择小红书筛选或合成验证。", Type.SUPPORT))
+        body.addView(ProductUi.text(this, "模型固定为 clef-flash。连接成功后，在设置与诊断逐个开启真实应用筛选或合成验证。", Type.SUPPORT))
         body.addView(ProductUi.section(this, "凭据管理"))
         body.addView(ProductUi.button(this, "删除凭据", ButtonKind.DANGER) {
             AlertDialog.Builder(this).setTitle("删除 Clef 凭据？").setMessage("之后手机直连需要重新配置。")

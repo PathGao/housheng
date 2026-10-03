@@ -125,7 +125,7 @@ class ReportActivity : Activity() {
         val allowed = selected.filter { preferences.alwaysAllow(it) }.toSet()
         val rules = preferences.ruleText()
         val health = ServiceHealth(this)
-        val state = "通知：${health.notificationStatus().title}；页面：${health.pageStatus().title}。真实信息流尚未开放。"
+        val state = "通知：${health.notificationStatus().title}；页面：${health.pageStatus().title}。${getString(R.string.report_feed_state)}"
         setLoading()
         worker.execute {
             val result = runCatching {

@@ -1,3 +1,10 @@
 <resources>
+    <string name="app_name">后生</string>
     <string name="accessibility_description">只读取名单内已适配的信息流。当前只有验证场可用，真实应用页面暂不读取。浏览器、聊天与账号页不采集。验证截图由你主动触发，可随时停止服务。应用清单查询不授予内容访问权限。</string>
+    <string name="about_pending">本版本不联网，没有信息流筛选。抖音、快手、小红书的筛选在联网版“后生 AI”里单独开启。</string>
+    <string name="diagnostics_intro">日常规则使用本地关键词。本版本不联网，没有模型筛选。</string>
+    <string name="diagnostics_accessibility">只允许读取名单中已适配的信息流页，当前只有验证场。浏览器、聊天、账号等页面不采集。截图仅在验证场手动预约。</string>
+    <string name="diagnostics_sources">首批名单：抖音、快手、小红书及所列极速版，本版本只处理它们的通知。浏览器、微信、QQ和名单外应用不采集。下方页面选项用于验证场，应用清单不会授权内容读取。</string>
+    <string name="diagnostics_statistics">本版本没有模型，内容记为未分类。</string>
+    <string name="report_feed_state">真实信息流尚未开放。</string>
 </resources>

@@ -31,7 +31,7 @@ class ClefClient:
         self.url = f"https://api.cloudflare.com/client/v4/accounts/{account}/ai/run/{MODEL}"
         self.token = token
         self.opener = opener or urllib.request.build_opener(NoRedirect())
-        self.questions = json.loads((ROOT / "app/src/debug/assets/clef-questions.json").read_text())
+        self.questions = json.loads((ROOT / "app/src/online/assets/clef-questions.json").read_text())
 
     def predict(self, text):
         if not isinstance(text, str) or not text.strip() or len(text) > 4000:

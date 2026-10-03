@@ -25,7 +25,7 @@ class DiagnosticsActivity : Activity() {
         super.onCreate(savedInstanceState)
         Session.initialize(this)
         body = ProductUi.page(this, "设置与诊断").body
-        label("日常规则使用本地关键词。调试版可配置 Clef API，并单独启用小红书发现页卡片筛选。")
+        label(getString(R.string.diagnostics_intro))
         button("应用清单 / 近30天安装 / 分享给孩子") { startActivity(Intent(this, InventoryActivity::class.java)) }
         button("查看本次信息流统计") {
             fun counts(testData: Boolean): String {
@@ -34,7 +34,7 @@ class DiagnosticsActivity : Activity() {
                 return "观察到 ${counts.values.sum()} 次内容展示\n" + counts.entries.joinToString("\n") { "${it.key.label}：${it.value}次" }
             }
             AlertDialog.Builder(this).setTitle("本次信息流统计")
-                .setMessage("真实应用\n${counts(false)}\n\n验证场（不计入父母统计）\n${counts(true)}\n\n模型仅返回保留、过滤或不确定，不输出话题，内容记为未分类。真实应用实验筛选暂不计入话题统计。次数表示观察到的展示，不代表观看时长。仅保存在本次进程，清空记录或进程结束后清除。")
+                .setMessage("真实应用\n${counts(false)}\n\n验证场（不计入父母统计）\n${counts(true)}\n\n${getString(R.string.diagnostics_statistics)}次数表示观察到的展示，不代表观看时长。仅保存在本次进程，清空记录或进程结束后清除。")
                 .setPositiveButton("关闭", null).show()
         }
         status = label("", Type.SUPPORT)
@@ -53,13 +53,13 @@ class DiagnosticsActivity : Activity() {
         }
         button("打开无障碍设置") {
             AlertDialog.Builder(this).setTitle("允许观察选定应用")
-                .setMessage("只允许读取名单中已适配的信息流页。调试版可单独启用小红书发现页筛选。浏览器、聊天、账号等页面不采集。截图仅在验证场手动预约。")
+                .setMessage(R.string.diagnostics_accessibility)
                 .setPositiveButton("去设置") { _, _ -> settings(Settings.ACTION_ACCESSIBILITY_SETTINGS) }
                 .setNegativeButton("暂不", null).show()
         }
         button("管理应用通知权限") { settings(Settings.ACTION_APP_NOTIFICATION_SETTINGS) }
         section("观察来源")
-        label("首批名单：抖音、快手、小红书及所列极速版。浏览器、微信、QQ和名单外应用不采集。下方页面选项用于验证场。小红书实验入口在本页下方单独确认开启，应用清单不会授权内容读取。", Type.SUPPORT)
+        label(getString(R.string.diagnostics_sources), Type.SUPPORT)
         for ((source, name) in Session.sources) {
             val row = ProductUi.panel(this).apply {
                 (layoutParams as LinearLayout.LayoutParams).topMargin = dp(12)
