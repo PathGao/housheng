@@ -1,0 +1,10 @@
+<resources>
+    <color name="housheng_background">#F6F4EE</color>
+    <color name="housheng_surface">#FFFFFF</color>
+    <color name="housheng_text">#203B36</color>
+    <color name="housheng_secondary">#52655F</color>
+    <color name="housheng_accent">#205D50</color>
+    <color name="housheng_on_accent">#FFFFFF</color>
+    <color name="housheng_outline">#69857C</color>
+    <color name="housheng_ripple">#3369857C</color>
+</resources>

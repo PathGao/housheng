@@ -1,0 +1,87 @@
+name: 构建与检查
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android 构建、测试与权限检查
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: 获取源码
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 配置 Java 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: 配置 Gradle 缓存并校验 Wrapper
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
+      - name: 安装 Android 35 工具链
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"'
+      - name: 单元测试、静态检查与全部构建
+        run: >-
+          ./gradlew --no-daemon --console=plain
+          :app:testDebugUnitTest :app:lintDebug :fixture:lintDebug
+          :app:assembleDebug :fixture:assembleDebug
+          :app:assembleDebugAndroidTest :fixture:assembleDebugAndroidTest
+          :app:assembleRelease
+      - name: 确认发行构建不请求网络权限
+        shell: bash
+        run: |
+          permissions="$($ANDROID_HOME/build-tools/35.0.0/aapt2 dump permissions app/build/outputs/apk/release/app-release-unsigned.apk)"
+          if grep -q 'android.permission.INTERNET' <<< "$permissions"; then
+            echo '::error::发行构建不应包含网络权限'
+            exit 1
+          fi
+      - name: 保存家庭试用安装包
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: housheng-debug-apks
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            fixture/build/outputs/apk/debug/fixture-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+      - name: 保存检查报告
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+            fixture/build/reports/
+          retention-days: 14
+
+  protocol:
+    name: 模型协议与统计检查
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: 获取源码
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 配置 Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: 运行无模型依赖的协议与指标测试
+        run: python -m unittest discover -s validation/laya -p 'test_*.py' -v
+      - name: 检查 Shell 入口语法
+        run: sh -n scripts/build-local.sh scripts/test-device.sh validation/laya/python.sh validation/laya/setup.sh

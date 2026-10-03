@@ -1,0 +1,35 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+export ANDROID_USER_HOME="$PWD/.tools/android-user"
+if [ -x .tools/android-sdk/platform-tools/adb ]; then
+  adb="$PWD/.tools/android-sdk/platform-tools/adb"
+else
+  adb=adb
+fi
+classes=io.github.pathgao.housheng.DeviceValidationTest,io.github.pathgao.housheng.SessionPreferencesTest,io.github.pathgao.housheng.PlatformValidationTest,io.github.pathgao.housheng.ReportStoreTest,io.github.pathgao.housheng.ProductFlowTest
+if [ "${1:-}" = "--model" ]; then
+  validation/laya/python.sh -c 'import json, urllib.request; r=json.load(urllib.request.urlopen("http://127.0.0.1:18765/health", timeout=2)); assert r["ready"] and r["model"] == "laya-multilingual"'
+  "$adb" reverse tcp:18765 tcp:18765
+  classes="$classes,io.github.pathgao.housheng.ModelClientTest,io.github.pathgao.housheng.ModelPipelineTest"
+elif [ "$#" -gt 0 ]; then
+  echo "usage: scripts/test-device.sh [--model]" >&2
+  exit 2
+fi
+scripts/build-local.sh :app:assembleDebug :app:assembleDebugAndroidTest :fixture:assembleDebug :fixture:assembleDebugAndroidTest --console=plain
+"$adb" install -r app/build/outputs/apk/debug/app-debug.apk
+"$adb" install -r fixture/build/outputs/apk/debug/fixture-debug.apk
+"$adb" install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+"$adb" install -r fixture/build/outputs/apk/androidTest/debug/fixture-debug-androidTest.apk
+# Notification permission is granted through the fixture's normal system prompt.
+# Xiaomi may deny shell permission grants even when USB debugging is enabled.
+mkdir -p .tools
+"$adb" shell am instrument -w -r -e class "$classes" io.github.pathgao.housheng.test/androidx.test.runner.AndroidJUnitRunner > .tools/device-test.log
+cat .tools/device-test.log
+result=0
+grep -Eq '^OK \([1-9][0-9]* tests?\)' .tools/device-test.log || result=1
+# Run recovery in the fixture process so its exit leaves Housheng connected.
+"$adb" shell am instrument -w io.github.pathgao.housheng.fixture.test/androidx.test.runner.AndroidJUnitRunner > .tools/service-recovery.log
+cat .tools/service-recovery.log
+grep -Eq '^OK \([1-9][0-9]* tests?\)' .tools/service-recovery.log || result=1
+exit "$result"

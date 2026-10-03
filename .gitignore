@@ -1,0 +1,10 @@
+.tools/
+.gradle/
+.gradle-home/
+.kotlin/
+**/build/
+local.properties
+artifacts/
+*.jks
+*.keystore
+.DS_Store

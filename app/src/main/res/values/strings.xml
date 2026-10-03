@@ -1,0 +1,3 @@
+<resources>
+    <string name="accessibility_description">只读取名单内已适配的信息流。当前只有验证场可用，真实应用页面暂不读取。浏览器、聊天与账号页不采集。验证截图由你主动触发，可随时停止服务。应用清单查询不授予内容访问权限。</string>
+</resources>
