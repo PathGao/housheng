@@ -16,12 +16,19 @@ class RealAppValidationTest {
         val prefs = Preferences(instrumentation.targetContext)
         val originalRules = prefs.ruleText()
         DevicePreparation().reconnectServicesForInstrumentation()
+        // -e maskPath frame forces the screenshot blur fallback on phones that support live blur.
+        val prefix = if (InstrumentationRegistry.getArguments().getString("maskPath") == "frame") "frame-" else ""
+        fun snap(name: String) = DeviceUi.automation.takeScreenshot()?.let { bitmap ->
+            java.io.File(instrumentation.targetContext.cacheDir, "$prefix$name.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
+        }
         try {
             instrumentation.runOnMainSync {
             Session.stop(); Session.clear()
             prefs.saveRules("")
             ModelValidation.realEnabled = true
             Session.feedExecution = true
+            FeedMask.liveBlurAllowed = prefix.isEmpty()
             }
             DeviceUi.shell("am start -W -f 0x10008000 -n com.xingin.xhs/.index.v2.IndexActivityV2")
             val end = Session.now() + 15000
@@ -36,13 +43,18 @@ class RealAppValidationTest {
             instrumentation.sendStatus(0, Bundle().apply { putString("realFeed", Session.journal()) })
             val root = DeviceUi.automation.rootInActiveWindow ?: error("No public feed")
             val card = try { XiaohongshuFeed.read(root).first() } finally { root.recycle() }
+            snap("before")
             instrumentation.runOnMainSync {
                 prefs.saveRules(card.title)
                 FeedService.instance!!.invalidate()
                 FeedService.instance!!.onAccessibilityEvent(android.view.accessibility.AccessibilityEvent.obtain(android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED))
             }
-            Thread.sleep(800)
-            assertTrue(Session.journal(), Session.journal().contains("小红书 · 卡片已遮挡"))
+            // The screenshot blur fallback waits for one screenshot before the cover appears.
+            val maskEnd = Session.now() + 3000
+            while (Session.now() < maskEnd && !Session.journal().contains("小红书 · 已遮挡")) Thread.sleep(100)
+            Thread.sleep(300)
+            assertTrue(Session.journal(), Session.journal().contains("小红书 · 已遮挡"))
+            instrumentation.sendStatus(0, Bundle().apply { putString("maskStyle", Session.journal().lines().first { "小红书 · 已遮挡" in it }) })
             fun revealNode(at: android.graphics.Rect? = null): android.view.accessibility.AccessibilityNodeInfo? {
                 for (window in DeviceUi.automation.windows) {
                     val windowRoot = window.root ?: continue
@@ -57,10 +69,7 @@ class RealAppValidationTest {
                 }
                 return null
             }
-            DeviceUi.automation.takeScreenshot()?.let { bitmap ->
-                java.io.File(instrumentation.targetContext.cacheDir, "real-mask.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
-                bitmap.recycle()
-            }
+            snap("blurred")
             val reveal = revealNode()
             assertNotNull("Real accessibility overlay must be visible", reveal)
             val clickedBounds = android.graphics.Rect().also(reveal!!::getBoundsInScreen)
@@ -68,6 +77,7 @@ class RealAppValidationTest {
             Thread.sleep(300)
             assertNull("Reveal must remove the selected mask", revealNode(clickedBounds))
             assertTrue(Session.journal().contains("用户恢复显示"))
+            snap("restored")
             instrumentation.runOnMainSync { FeedService.instance!!.onAccessibilityEvent(android.view.accessibility.AccessibilityEvent.obtain(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SCROLLED)) }
             assertNull("Scrolling must leave no stale overlay", revealNode())
             instrumentation.sendStatus(0, Bundle().apply { putString("realMask", "Real card keyword mask and reveal passed") })
@@ -106,7 +116,7 @@ class RealAppValidationTest {
             assertNull("Leaving the feed must remove overlays", revealNode())
             instrumentation.sendStatus(0, Bundle().apply { putString("realScroll", "Real list advanced, Clef resumed, overlays cleared on app switch") })
         } finally {
-            instrumentation.runOnMainSync { Session.stop(); ModelValidation.realEnabled = false }
+            instrumentation.runOnMainSync { Session.stop(); ModelValidation.realEnabled = false; FeedMask.liveBlurAllowed = true }
             assertTrue(instrumentation.targetContext.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE).edit().putString("rules", originalRules).commit())
         }
     }
