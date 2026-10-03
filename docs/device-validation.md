@@ -65,7 +65,7 @@ scripts/test-device.sh
 服务恢复可单独运行（测试组件已安装时）：
 
 ```sh
-adb shell am instrument -w io.github.pathgao.housheng.fixture.test/androidx.test.runner.AndroidJUnitRunner
+adb shell am instrument -w -e housheng io.github.pathgao.housheng.online io.github.pathgao.housheng.fixture.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 ## 手动检查

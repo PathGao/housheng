@@ -15,7 +15,7 @@
 
 完整请求中位800.043ms，P95 1187.269ms，最大1895.494ms，60/60超过500ms。这是电脑经当前网络到Cloudflare的完整往返，不能当作模型纯推理时间。3秒动作期限只用于调试版开启模型的合成验证场，普通关键词路径仍500ms。请求排队不刷新页面时间，页面变化仍取消旧决策。
 
-[原始评估](../validation/clef/results/2026-10-03.json)包含样本和规则的 SHA-256，已核对与仓库文件一致。共18788输入token。唯一错误是u06“推荐内容加载失败，请稍后重试。”，预期uncertain、实际keep。实际规则唯一来源 app/src/debug/assets/clef-questions.json。1次运行的60条合成样本不能证明真实应用效果或长期网络稳定性。
+[原始评估](../validation/clef/results/2026-10-03.json)包含样本和规则的 SHA-256，已核对与仓库文件一致。共18788输入token。唯一错误是u06“推荐内容加载失败，请稍后重试。”，预期uncertain、实际keep。实际规则唯一来源 app/src/online/assets/clef-questions.json。1次运行的60条合成样本不能证明真实应用效果或长期网络稳定性。
 
 ## 设备结果
 

@@ -1,10 +1,16 @@
 # 发版
 
-推送 `v*` 标签后，`.github/workflows/release.yml` 会跑测试与 Lint，用发行密钥签名 `assembleRelease`，确认没有网络权限，再把 `housheng-<版本>.apk` 和 `SHA256SUMS` 发到 GitHub Release。版本号带 `-` 的标为预发布。
+每次发版同时出两个正式签名的 APK，共用一个版本号：
 
-## Clef 调试预览包
+| | 不联网版 | 联网版 |
+|---|---|---|
+| Gradle flavor | `offline` | `online` |
+| 包名 | `io.github.pathgao.housheng` | `io.github.pathgao.housheng.online` |
+| 桌面名称 | 后生 | 后生 AI |
+| 发行文件 | `housheng-<版本>.apk` | `housheng-online-<版本>.apk` |
+| 权限 | 无 | 只有 `INTERNET` |
 
-当前 `clef-preview-*` 标签用于本机真机验收后的调试包，直接上传 APK 和 SHA256SUMS 到 GitHub 预发布，不触发下述标准发行工作流。调试签名与手机原安装一致，可覆盖升级，含 Clef 网络权限，凭据不随包分发。标准 release 构建仍不含模型网络入口，两类包不能混称。
+推送 `v*` 标签后，`.github/workflows/release.yml` 会跑两版单元测试与 Lint，用同一把发行密钥签名 `assembleRelease` 产出的两个包，用 `scripts/check-permissions.sh` 精确比对两版权限，再把两个 APK 和一份两行的 `SHA256SUMS` 发到同一个 GitHub Release。版本号带 `-` 的标为预发布。
 
 ## 一次性准备
 
@@ -28,29 +34,27 @@ gh secret set HOUSHENG_KEY_PASSWORD -R PathGao/housheng
 
 ## 每次发版
 
-1. 改 `app/build.gradle.kts`：`versionCode` 加一，`versionName` 改成新版本。
-2. 可选：写 `docs/releases/<versionName>.md` 作为发布说明。也认去掉 `-` 后缀的文件名，如 `0.2.1.md`。没有就由 GitHub 自动生成。
+1. 改 `app/build.gradle.kts`：`versionCode` 加一，`versionName` 改成新版本。两版共用这两个值。
+2. 可选：写 `docs/releases/<versionName>.md` 作为发布说明。也认去掉 `-` 后缀的文件名，如 `0.2.4.md`。没有就由 GitHub 自动生成。
 3. 提交、推送，然后打标签。标签必须是 `v` 加 `versionName`，不一致时工作流会失败：
 
 ```sh
-git tag v0.2.2-family-preview
-git push origin v0.2.2-family-preview
+git tag v0.2.4
+git push origin v0.2.4
 ```
 
 ## 验证
 
 ```sh
-gh release download v0.2.2-family-preview -R PathGao/housheng -D /tmp/hs
+gh release download v0.2.4 -R PathGao/housheng -D /tmp/hs
 cd /tmp/hs && shasum -a 256 -c SHA256SUMS
 apksigner verify --print-certs housheng-*.apk
 ```
 
-证书 SHA-256 每次都应相同。
+两个包的证书 SHA-256 相同，且每次发版都不变。
 
-本机签名构建：设置 `HOUSHENG_KEYSTORE_PATH`、`HOUSHENG_KEYSTORE_PASSWORD`、`HOUSHENG_KEY_ALIAS`、`HOUSHENG_KEY_PASSWORD` 后运行 `scripts/build-local.sh :app:assembleRelease`，产物是 `app-release.apk`。不设置时产物是 `app-release-unsigned.apk`，CI 就是这样跑的。
+本机签名构建：设置 `HOUSHENG_KEYSTORE_PATH`、`HOUSHENG_KEYSTORE_PASSWORD`、`HOUSHENG_KEY_ALIAS`、`HOUSHENG_KEY_PASSWORD` 后运行 `scripts/build-local.sh :app:assembleRelease`，产物是 `app/build/outputs/apk/{offline,online}/release/app-*-release.apk`。不设置时产物是 `app-*-release-unsigned.apk`，CI 就是这样跑的。
 
 ## 从调试包迁移（只需一次）
 
-之前装的都是调试签名包。发行包签名不同，Android 不允许覆盖安装，**必须先卸载旧版，本机设置、关键词和报告会一起清空**。卸载前先记下需要保留的设置。
-
-标准发行包没有调试包里的 Clef 网络与真实信息流实验入口。之后的发行包之间可以正常覆盖升级。
+之前装的都是调试签名包，包名与不联网版相同。发行包签名不同，Android 不允许覆盖安装，**必须先卸载旧版，本机设置、关键词和报告会一起清空**。卸载前先记下需要保留的设置。原来的 Clef 调试预览包已由联网版取代，联网版包名不同，直接安装即可，Clef 凭据需要重新配置。之后的发行包之间可以正常覆盖升级。
