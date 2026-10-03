@@ -49,16 +49,16 @@ class DiagnosticsActivity : Activity() {
         button("打开通知使用权设置") {
             AlertDialog.Builder(this).setTitle("允许读取通知")
                 .setMessage("系统会授予后生读取通知的能力。后生只处理下方勾选的来源，记录中不保存通知正文。授权后请返回本页选择来源。")
-                .setPositiveButton("去设置") { _, _ -> openSettings(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS) }
+                .setPositiveButton("去设置") { _, _ -> settings(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS) }
                 .setNegativeButton("暂不", null).show()
         }
         button("打开无障碍设置") {
             AlertDialog.Builder(this).setTitle("允许观察选定应用")
                 .setMessage("只允许读取名单中已适配的信息流页。调试版可单独启用小红书发现页筛选。浏览器、聊天、账号等页面不采集。截图仅在验证场手动预约。")
-                .setPositiveButton("去设置") { _, _ -> openSettings(Settings.ACTION_ACCESSIBILITY_SETTINGS) }
+                .setPositiveButton("去设置") { _, _ -> settings(Settings.ACTION_ACCESSIBILITY_SETTINGS) }
                 .setNegativeButton("暂不", null).show()
         }
-        button("管理应用通知权限") { openSettings(Settings.ACTION_APP_NOTIFICATION_SETTINGS, packageName) }
+        button("管理应用通知权限") { settings(Settings.ACTION_APP_NOTIFICATION_SETTINGS) }
         section("观察来源")
         label("首批名单：抖音、快手、小红书及所列极速版。浏览器、微信、QQ和名单外应用不采集。下方页面选项用于验证场。小红书实验入口在本页下方单独确认开启，应用清单不会授权内容读取。", Type.SUPPORT)
         for ((source, name) in Session.sources) {
@@ -83,7 +83,7 @@ class DiagnosticsActivity : Activity() {
                     }
                 })
             }
-            row.addView(ProductUi.button(this, "通知设置", ButtonKind.OUTLINED) { openSettings(Settings.ACTION_APP_NOTIFICATION_SETTINGS, source) })
+            row.addView(ProductUi.button(this, "通知设置", ButtonKind.OUTLINED) { settings(Settings.ACTION_APP_NOTIFICATION_SETTINGS, source) })
             body.addView(row)
         }
         section("筛选规则")
@@ -160,9 +160,8 @@ class DiagnosticsActivity : Activity() {
         body.addView(ProductUi.button(this, value, ButtonKind.OUTLINED, action).apply { (layoutParams as LinearLayout.LayoutParams).topMargin = dp(12) })
     }
     private fun toast(message: String) { Toast.makeText(this, message, Toast.LENGTH_SHORT).show() }
-    private fun openSettings(action: String, source: String? = null) {
-        runCatching { startActivity(Intent(action).apply { source?.let { putExtra(Settings.EXTRA_APP_PACKAGE, it) } }) }
-            .onFailure { toast("此设备没有对应设置入口") }
+    private fun settings(action: String, source: String = packageName) {
+        if (!openSettings(action, source)) toast("此设备没有对应设置入口")
     }
     private fun refresh() {
         updatingSwitches = true

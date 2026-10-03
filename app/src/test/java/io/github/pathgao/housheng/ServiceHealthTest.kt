@@ -24,6 +24,17 @@ class ServiceHealthTest {
         assertEquals(ServiceStatus.OBSERVING, ServiceStatus.resolve(true, true, afterPause.requested))
     }
 
+    @Test fun missingSettingsPageFallsBackToAPageWithTheSameSwitch() {
+        val shipped = setOf(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.provider.Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS)
+        for (action in listOf(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS, android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) {
+            val tried = mutableListOf<String>()
+            assertTrue(launchFirst(settingsPages(action)) { tried.add(it); if (it !in shipped) throw IllegalStateException("no activity") })
+            assertEquals(action, tried.first())
+            assertTrue(tried.last() in shipped)
+        }
+        assertFalse(launchFirst(settingsPages(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)) { throw SecurityException("not exported") })
+    }
+
     @Test fun firstUseObservesAndDisconnectedDoesNotLookUnauthorized() {
         assertEquals(ServiceStatus.OBSERVING, ServiceStatus.resolve(true, true, false))
         val disconnected = ServiceStatus.resolve(true, false, false)
