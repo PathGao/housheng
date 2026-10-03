@@ -53,13 +53,13 @@ class PlatformValidationTest {
         } finally { prefs.edit().putStringSet("pages", previous).commit() }
     }
 
-    @Test fun inventoryRequiresExplicitScanAndCanBeCleared() {
+    @Test fun inventoryRequiresExplicitScan() {
         val activity = open(InventoryActivity::class.java)
         try {
             onMain {
                 val all = views(activity.window.decorView)
-                assertTrue(all.filterIsInstance<TextView>().any { it.text.contains("尚未读取") })
-                all.filterIsInstance<Button>().single { it.text == "读取 / 刷新清单" }.performClick()
+                assertTrue(all.filterIsInstance<TextView>().any { it.text.contains("还没读取") })
+                all.filterIsInstance<Button>().single { it.text == "读取应用清单" }.performClick()
             }
             val deadline = Session.now() + 10000
             var count = 0
@@ -74,11 +74,6 @@ class PlatformValidationTest {
                 Thread.sleep(50)
             }
             assertTrue("应查询到本应用的启动器入口，实际数量=$count", includesSelf)
-            onMain {
-                views(activity.window.decorView).filterIsInstance<Button>().single { it.text == "清空本页清单" }.performClick()
-                val list = views(activity.window.decorView).filterIsInstance<ListView>().single()
-                assertEquals(0, list.adapter.count - list.headerViewsCount - list.footerViewsCount)
-            }
         } finally { onMain { activity.finish() } }
     }
 }

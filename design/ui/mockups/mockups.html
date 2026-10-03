@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>后生界面稿</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&display=block">
+<style>
+:root{
+  --bg:#F2F4F3; --surface:#FFFFFF; --surface-2:#E9EEEC;
+  --text:#1B2622; --text-2:#56635F; --disabled:#8C9693;
+  --divider:#D9DFDD; --outline:#8A9893;
+  --primary:#0B6B62; --on-primary:#FFFFFF; --primary-c:#D5F2EE;
+  --ok:#1D6B3A; --ok-c:#E2F2E7; --warn:#7A4E00; --warn-c:#FCEFD4;
+  --err:#A8261D; --err-c:#FBE5E2; --neu:#46525A; --neu-c:#E8ECEE;
+  --s:var(--scale,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#C9CFCC;font-family:"Noto Sans SC",sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+.ms{font-family:"Material Symbols Rounded";font-weight:400;font-style:normal;font-size:24px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0;-webkit-font-feature-settings:"liga"}
+.fill{font-variation-settings:"FILL" 1}
+
+/* phone */
+.phone{--s:var(--scale,1);width:412px;height:915px;background:var(--bg);position:relative;overflow:hidden;display:flex;flex-direction:column}
+.sysbar{height:36px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:14px;color:var(--text)}
+.sysbar .ms{font-size:16px}
+.navbar{height:24px;flex:none;display:flex;justify-content:center;align-items:center}
+.navbar i{width:108px;height:4px;border-radius:2px;background:#1B2622;opacity:.55}
+.content{flex:1;overflow:hidden;padding:0 16px 16px}
+
+/* type */
+.t-headline{font-size:calc(28px*var(--s));line-height:1.3;font-weight:700}
+.t-title{font-size:calc(22px*var(--s));line-height:1.35;font-weight:700}
+.t-body{font-size:calc(18px*var(--s));line-height:1.5}
+.t-label{font-size:calc(18px*var(--s));line-height:1.4;font-weight:500}
+.t-support{font-size:calc(16px*var(--s));line-height:1.5;color:var(--text-2)}
+.t-section{font-size:calc(16px*var(--s));line-height:1.5;font-weight:500;color:var(--primary);padding:20px 4px 8px}
+.t-num{font-size:calc(30px*var(--s));line-height:1.2;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* app bar */
+.appbar{height:64px;display:flex;align-items:center;gap:4px;margin:0 -8px}
+.appbar .icon-btn{width:48px;height:48px;border-radius:24px;display:flex;align-items:center;justify-content:center}
+.appbar .t-title{flex:1}
+.appbar .action{font-size:calc(18px*var(--s));font-weight:500;color:var(--primary);padding:0 12px;height:48px;display:flex;align-items:center;gap:4px}
+.brand{height:72px;display:flex;align-items:center;gap:12px}
+.brand img{width:40px;height:40px;border-radius:10px}
+
+/* group / rows */
+.group{background:var(--surface);border-radius:16px;overflow:hidden}
+.row{min-height:calc(64px*var(--s));display:flex;align-items:center;gap:16px;padding:12px 16px;position:relative}
+.row+.row::before{content:"";position:absolute;top:0;left:16px;right:0;height:1px;background:var(--divider)}
+.row.inset+.row.inset::before{left:72px}
+.row .lead{width:40px;height:40px;border-radius:12px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;flex:none;color:var(--primary)}
+.row .lead.app{border-radius:10px;color:#fff;font-weight:700;font-size:16px}
+.row .main{flex:1;min-width:0}
+.row .val{color:var(--text-2);font-size:calc(16px*var(--s));white-space:nowrap}
+.row .chev{color:var(--text-2)}
+.row.off .t-label,.row.off .t-support{color:var(--disabled)}
+.helper{padding:8px 4px 0}
+
+/* switch */
+.sw{width:52px;height:32px;border-radius:16px;background:var(--surface-2);border:2px solid var(--outline);position:relative;flex:none}
+.sw::after{content:"";position:absolute;width:16px;height:16px;border-radius:8px;background:var(--outline);top:6px;left:6px}
+.sw.on{background:var(--primary);border-color:var(--primary)}
+.sw.on::after{width:24px;height:24px;border-radius:12px;background:#fff;top:2px;left:22px}
+.sw.on::before{content:"check";font-family:"Material Symbols Rounded";position:absolute;left:24px;top:4px;font-size:20px;color:var(--primary);z-index:1}
+
+/* status chip & panel */
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 8px;border-radius:8px;font-size:calc(16px*var(--s));font-weight:500;white-space:nowrap}
+.chip .ms{font-size:20px}
+.chip.ok{background:var(--ok-c);color:var(--ok)} .chip.warn{background:var(--warn-c);color:var(--warn)}
+.chip.err{background:var(--err-c);color:var(--err)} .chip.neu{background:var(--neu-c);color:var(--neu)}
+.status{background:var(--surface);border-radius:16px;padding:20px}
+.status .t-title{margin:12px 0 4px}
+
+/* metrics */
+.metrics{display:flex;margin-top:16px;border-top:1px solid var(--divider);padding-top:16px}
+.metrics>div{flex:1}
+.metrics>div+div{border-left:1px solid var(--divider);padding-left:16px}
+
+/* buttons */
+.btn{height:calc(60px*var(--s));min-height:60px;border-radius:30px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:calc(18px*var(--s));font-weight:500;width:100%}
+.btn.filled{background:var(--primary);color:var(--on-primary)}
+.btn.tonal{background:var(--primary-c);color:var(--primary)}
+.btn.outlined{border:1px solid var(--outline);color:var(--primary);background:transparent}
+.btn.text{color:var(--primary);width:auto;padding:0 12px}
+.btn-row{display:flex;gap:12px}
+.btn.danger{color:var(--err)}
+
+/* segmented */
+.seg{display:flex;border:1px solid var(--outline);border-radius:30px;overflow:hidden;height:calc(60px*var(--s))}
+.seg>div{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:calc(18px*var(--s));font-weight:500}
+.seg>div+div{border-left:1px solid var(--outline)}
+.seg .sel{background:var(--primary-c);color:var(--primary)}
+.seg .sel .ms{font-size:20px}
+
+/* keyword chips */
+.kw{display:flex;flex-wrap:wrap;gap:8px;padding:4px 16px 16px}
+.kw span{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--outline);display:inline-flex;align-items:center;font-size:calc(16px*var(--s))}
+
+/* bars */
+.bar{height:8px;border-radius:4px;background:transparent;margin-top:8px;overflow:hidden;display:flex}
+.bar i{display:block;height:100%;background:var(--primary)}
+.bar b{display:block;height:100%;background:#7FB8B0}
+
+/* bottom bar */
+.bottom{flex:none;background:var(--surface);padding:12px 16px;border-top:1px solid var(--divider)}
+
+.screen{display:none}
+.screen.on{display:flex}
+
+/* spec sheet */
+.sheet{width:1240px;background:#fff;padding:40px;display:none}
+.sheet.on{display:block}
+.sheet h2{font-size:22px;margin:28px 0 12px}
+.sheet h2:first-child{margin-top:0}
+.sheet .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.sw-card{border:1px solid var(--divider);border-radius:12px;overflow:hidden;font-size:13px}
+.sw-card .c{height:56px}
+.sw-card div:last-child{padding:8px 10px;line-height:1.5}
+.typerow{display:flex;align-items:baseline;gap:24px;padding:8px 0;border-bottom:1px solid var(--divider)}
+.typerow code{width:220px;flex:none;font-size:13px;color:var(--text-2)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.demo{background:var(--bg);border-radius:16px;padding:16px}
+.note{font-size:14px;color:var(--text-2);margin-top:6px}
+</style>
+</head>
+<body>
+
+<!-- ===== 首页 · 清理中 ===== -->
+<div class="phone screen" id="home">
+  <div class="sysbar"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">wifi</span> <span class="ms">battery_full</span></span></div>
+  <div class="content">
+    <div class="brand"><img src="../../../app/src/main/res/drawable-nodpi/ic_housheng.png" alt=""><div class="t-headline">后生</div></div>
+    <div class="status">
+      <span class="chip ok"><span class="ms fill">check_circle</span>清理中</span>
+      <div class="t-title">正在按规则清理通知</div>
+      <div class="t-support">管理 3 个应用。电话、短信、闹钟不会被清理。</div>
+      <div class="metrics">
+        <div><div class="t-num">128</div><div class="t-support">7 天收到</div></div>
+        <div><div class="t-num">23</div><div class="t-support">已清理</div></div>
+        <div><div class="t-num">9</div><div class="t-support">受保护</div></div>
+      </div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="group">
+      <div class="row inset"><div class="lead"><span class="ms">notifications</span></div><div class="main t-label">通知清理</div><span class="val">3 个应用</span><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead"><span class="ms">summarize</span></div><div class="main t-label">家庭报告</div><span class="val">最近 7 天</span><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead"><span class="ms">apps</span></div><div class="main t-label">应用清单</div><span class="val">新装 2 个</span><span class="ms chev">chevron_right</span></div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="btn outlined"><span class="ms">pause</span>暂停自动清理</div>
+    <div style="height:16px"></div>
+    <div class="group">
+      <div class="row inset"><div class="lead"><span class="ms">tune</span></div><div class="main t-label">设置与诊断</div><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead"><span class="ms">shield</span></div><div class="main t-label">后生会做什么</div><span class="ms chev">chevron_right</span></div>
+    </div>
+  </div>
+  <div class="navbar"><i></i></div>
+</div>
+
+<!-- ===== 首页 · 未授权 ===== -->
+<div class="phone screen" id="home-unauth">
+  <div class="sysbar"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">wifi</span> <span class="ms">battery_full</span></span></div>
+  <div class="content">
+    <div class="brand"><img src="../../../app/src/main/res/drawable-nodpi/ic_housheng.png" alt=""><div class="t-headline">后生</div></div>
+    <div class="status">
+      <span class="chip warn"><span class="ms fill">error</span>未授权</span>
+      <div class="t-title">还不能管理通知</div>
+      <div class="t-support">需要在系统设置里允许一次。后生不保存通知内容。</div>
+      <div style="height:16px"></div>
+      <div class="btn filled">去系统设置允许</div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="group">
+      <div class="row inset"><div class="lead"><span class="ms">notifications</span></div><div class="main t-label">通知清理</div><span class="val">未选择</span><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead"><span class="ms">summarize</span></div><div class="main t-label">家庭报告</div><span class="val">暂无记录</span><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead"><span class="ms">apps</span></div><div class="main t-label">应用清单</div><span class="ms chev">chevron_right</span></div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="group">
+      <div class="row inset"><div class="lead"><span class="ms">tune</span></div><div class="main t-label">设置与诊断</div><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead"><span class="ms">shield</span></div><div class="main t-label">后生会做什么</div><span class="ms chev">chevron_right</span></div>
+    </div>
+  </div>
+  <div class="navbar"><i></i></div>
+</div>
+
+<!-- ===== 通知管理 ===== -->
+<div class="phone screen" id="notify">
+  <div class="sysbar"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">wifi</span> <span class="ms">battery_full</span></span></div>
+  <div class="content">
+    <div class="appbar"><div class="icon-btn"><span class="ms">arrow_back</span></div><div class="t-title">通知清理</div></div>
+    <div class="group">
+      <div class="row"><div class="main"><div class="t-label">按规则清理通知</div><div class="t-support">关闭时只记录次数</div></div><div class="sw on"></div></div>
+    </div>
+    <div class="t-support helper">电话、短信、闹钟和常驻通知始终保留。</div>
+    <div class="t-section">管理的应用</div>
+    <div class="group">
+      <div class="row inset"><div class="lead app" style="background:#161823">抖</div><div class="main"><div class="t-label">抖音</div><div class="t-support">7 天 46 次 · 清理 9 次</div></div><div class="sw on"></div></div>
+      <div class="row inset"><div class="lead app" style="background:#FF4906">快</div><div class="main"><div class="t-label">快手</div><div class="t-support">7 天 31 次 · 始终放行</div></div><div class="sw on"></div></div>
+      <div class="row inset"><div class="lead app" style="background:#FF2442">书</div><div class="main"><div class="t-label">小红书</div><div class="t-support">7 天 51 次 · 清理 14 次</div></div><div class="sw on"></div></div>
+      <div class="row inset off"><div class="lead app" style="background:#B8C0BD">抖</div><div class="main"><div class="t-label">抖音极速版</div><div class="t-support">未管理</div></div><div class="sw"></div></div>
+    </div>
+    <div class="t-support helper">点应用名可设置始终放行或系统通知。</div>
+    <div class="t-section">清理关键词</div>
+    <div class="group">
+      <div class="kw" style="padding-top:16px"><span>红包</span><span>领现金</span><span>限时</span><span>直播中</span><span>+3</span></div>
+      <div class="row"><div class="main t-label" style="color:var(--primary)">编辑关键词</div><span class="ms chev">chevron_right</span></div>
+    </div>
+  </div>
+  <div class="navbar"><i></i></div>
+</div>
+
+<!-- ===== 家庭报告 ===== -->
+<div class="phone screen" id="report">
+  <div class="sysbar"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">wifi</span> <span class="ms">battery_full</span></span></div>
+  <div class="content">
+    <div class="appbar"><div class="icon-btn"><span class="ms">arrow_back</span></div><div class="t-title">家庭报告</div></div>
+    <div class="seg"><div class="sel"><span class="ms">check</span>最近 7 天</div><div>最近 30 天</div></div>
+    <div style="height:16px"></div>
+    <div class="status">
+      <div class="t-support">9月27日 – 10月3日</div>
+      <div class="metrics" style="border:0;padding-top:8px;margin-top:0">
+        <div><div class="t-num">128</div><div class="t-support">收到</div></div>
+        <div><div class="t-num">23</div><div class="t-support">已清理</div></div>
+        <div><div class="t-num">9</div><div class="t-support">受保护</div></div>
+      </div>
+    </div>
+    <div class="t-section">各应用</div>
+    <div class="group">
+      <div class="row"><div class="main"><div style="display:flex;justify-content:space-between"><span class="t-label">小红书</span><span class="val">51 次 · 清理 14</span></div><div class="bar"><i style="width:100%"></i></div></div></div>
+      <div class="row"><div class="main"><div style="display:flex;justify-content:space-between"><span class="t-label">抖音</span><span class="val">46 次 · 清理 9</span></div><div class="bar" style="width:90%"><i style="width:100%"></i></div></div></div>
+      <div class="row"><div class="main"><div style="display:flex;justify-content:space-between"><span class="t-label">快手</span><span class="val">31 次 · 始终放行</span></div><div class="bar" style="width:61%"><i style="width:100%"></i></div></div></div>
+    </div>
+    <div class="t-section">分享内容</div>
+    <div class="group">
+      <div class="row"><div class="main"><div class="t-label">附上应用清单</div><div class="t-support">只含应用名和安装日期</div></div><div class="sw"></div></div>
+      <div class="row"><div class="main t-label" style="color:var(--primary)">预览全文</div><span class="ms chev">chevron_right</span></div>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="btn-row"><div class="btn outlined" style="flex:1"><span class="ms">content_copy</span>复制</div><div class="btn filled" style="flex:2"><span class="ms">share</span>分享给家人</div></div>
+  </div>
+  <div class="navbar" style="background:var(--surface)"><i></i></div>
+</div>
+
+<!-- ===== 应用清单 ===== -->
+<div class="phone screen" id="apps">
+  <div class="sysbar"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">wifi</span> <span class="ms">battery_full</span></span></div>
+  <div class="content">
+    <div class="appbar"><div class="icon-btn"><span class="ms">arrow_back</span></div><div class="t-title">应用清单</div><div class="action"><span class="ms">refresh</span>刷新</div></div>
+    <div class="t-support" style="padding:0 4px">共 86 个应用 · 10月3日 9:40 查询</div>
+    <div class="t-section">近 30 天新装 · 2 个</div>
+    <div class="group">
+      <div class="row inset"><div class="lead app" style="background:#E8A33D">清</div><div class="main"><div class="t-label">超级清理大师</div><div class="t-support">9月28日安装</div></div><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead app" style="background:#3C7BD9">天</div><div class="main"><div class="t-label">天天看点</div><div class="t-support">9月21日安装</div></div><span class="ms chev">chevron_right</span></div>
+    </div>
+    <div class="t-support helper">新装不代表有害，可以和家人一起看看用途。</div>
+    <div class="t-section">其他应用 · 84 个</div>
+    <div class="group">
+      <div class="row inset"><div class="lead app" style="background:#07C160">微</div><div class="main"><div class="t-label">微信</div><div class="t-support">2024年3月2日安装</div></div><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead app" style="background:#1677FF">支</div><div class="main"><div class="t-label">支付宝</div><div class="t-support">2024年3月2日安装</div></div><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead app" style="background:#161823">抖</div><div class="main"><div class="t-label">抖音</div><div class="t-support">2025年1月15日安装</div></div><span class="ms chev">chevron_right</span></div>
+    </div>
+  </div>
+  <div class="bottom"><div class="btn tonal"><span class="ms">share</span>分享清单</div></div>
+  <div class="navbar" style="background:var(--surface)"><i></i></div>
+</div>
+
+<!-- ===== 首页 · 大字号 1.3x ===== -->
+<div class="phone screen" id="home-large" style="--scale:1.3">
+  <div class="sysbar"><span>9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">wifi</span> <span class="ms">battery_full</span></span></div>
+  <div class="content">
+    <div class="brand"><img src="../../../app/src/main/res/drawable-nodpi/ic_housheng.png" alt=""><div class="t-headline">后生</div></div>
+    <div class="status">
+      <span class="chip err"><span class="ms fill">link_off</span>已断开</span>
+      <div class="t-title">通知服务已断开</div>
+      <div class="t-support">授权还在。连上之前不会清理。</div>
+      <div style="height:16px"></div>
+      <div class="btn filled">重新连接</div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="group">
+      <div class="row inset"><div class="lead"><span class="ms">notifications</span></div><div class="main t-label">通知清理</div><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead"><span class="ms">summarize</span></div><div class="main t-label">家庭报告</div><span class="ms chev">chevron_right</span></div>
+      <div class="row inset"><div class="lead"><span class="ms">apps</span></div><div class="main t-label">应用清单</div><span class="ms chev">chevron_right</span></div>
+    </div>
+  </div>
+  <div class="navbar"><i></i></div>
+</div>
+
+<!-- ===== 规范总览 ===== -->
+<div class="sheet" id="sheet">
+  <h2>颜色</h2>
+  <div class="grid">
+    <div class="sw-card"><div class="c" style="background:var(--primary)"></div><div><b>primary</b> #0B6B62<br>主按钮、选中、链接 · 白字 6.4:1</div></div>
+    <div class="sw-card"><div class="c" style="background:var(--primary-c)"></div><div><b>primary-container</b> #D5F2EE<br>选中底、次要按钮 · 主色字 5.4:1</div></div>
+    <div class="sw-card"><div class="c" style="background:var(--bg)"></div><div><b>background</b> #F2F4F3<br>页面底色</div></div>
+    <div class="sw-card"><div class="c" style="background:var(--surface);border-bottom:1px solid var(--divider)"></div><div><b>surface</b> #FFFFFF<br>分组、面板</div></div>
+    <div class="sw-card"><div class="c" style="background:var(--text)"></div><div><b>text</b> #1B2622<br>正文 15.6:1</div></div>
+    <div class="sw-card"><div class="c" style="background:var(--text-2)"></div><div><b>text-secondary</b> #56635F<br>说明、数值单位 6.3:1</div></div>
+    <div class="sw-card"><div class="c" style="background:var(--outline)"></div><div><b>outline</b> #8A9893<br>描边按钮、开关边 3.0:1</div></div>
+    <div class="sw-card"><div class="c" style="background:var(--divider)"></div><div><b>divider</b> #D9DFDD<br>行分隔线（装饰）</div></div>
+  </div>
+  <h2>状态色（只配图标 + 文字使用）</h2>
+  <div class="grid">
+    <div class="sw-card"><div class="c" style="background:var(--ok-c);display:flex;align-items:center;padding-left:12px"><span class="chip ok"><span class="ms fill">check_circle</span>清理中</span></div><div><b>ok</b> #1D6B3A / #E2F2E7 · 5.6:1<br>正在按设置工作</div></div>
+    <div class="sw-card"><div class="c" style="background:var(--neu-c);display:flex;align-items:center;padding-left:12px"><span class="chip neu"><span class="ms fill">visibility</span>只记录</span></div><div><b>neutral</b> #46525A / #E8ECEE · 6.8:1<br>观察、已暂停</div></div>
+    <div class="sw-card"><div class="c" style="background:var(--warn-c);display:flex;align-items:center;padding-left:12px"><span class="chip warn"><span class="ms fill">error</span>未授权</span></div><div><b>warning</b> #7A4E00 / #FCEFD4 · 6.3:1<br>需要你做一步</div></div>
+    <div class="sw-card"><div class="c" style="background:var(--err-c);display:flex;align-items:center;padding-left:12px"><span class="chip err"><span class="ms fill">link_off</span>已断开</span></div><div><b>error</b> #A8261D / #FBE5E2 · 5.9:1<br>出了问题、破坏性操作</div></div>
+  </div>
+  <h2>文字层级（sp，随系统字号放大）</h2>
+  <div class="typerow"><code>headline 28 / 700</code><span class="t-headline">后生</span></div>
+  <div class="typerow"><code>title 22 / 700</code><span class="t-title">正在按规则清理通知</span></div>
+  <div class="typerow"><code>number 30 / 700</code><span class="t-num">128</span></div>
+  <div class="typerow"><code>label 18 / 500</code><span class="t-label">通知清理</span></div>
+  <div class="typerow"><code>body 18 / 400</code><span class="t-body">报告预览、对话框正文</span></div>
+  <div class="typerow"><code>section 16 / 500 主色</code><span class="t-section" style="padding:0">管理的应用</span></div>
+  <div class="typerow"><code>support 16 / 400 次色</code><span class="t-support">关闭时只记录次数</span></div>
+  <h2>组件</h2>
+  <div class="cols">
+    <div class="demo">
+      <div class="btn filled">分享给家人</div><div class="note">Filled：每屏最多 1 个，本页最该做的事。高 60dp</div><div style="height:12px"></div>
+      <div class="btn tonal">分享清单</div><div class="note">Tonal：重要但非唯一</div><div style="height:12px"></div>
+      <div class="btn outlined">暂停自动清理</div><div class="note">Outlined：次要、可逆</div><div style="height:12px"></div>
+      <div class="btn text danger" style="width:100%">清空历史统计</div><div class="note">破坏性：红色文字按钮，单独一组放页底，必须二次确认</div>
+    </div>
+    <div class="demo">
+      <div class="group">
+        <div class="row inset"><div class="lead"><span class="ms">notifications</span></div><div class="main t-label">导航行（名词）</div><span class="val">当前值</span><span class="ms chev">chevron_right</span></div>
+        <div class="row inset"><div class="lead app" style="background:#161823">抖</div><div class="main"><div class="t-label">开关行</div><div class="t-support">说明一行</div></div><div class="sw on"></div></div>
+        <div class="row inset off"><div class="lead app" style="background:#B8C0BD">抖</div><div class="main"><div class="t-label">关闭的开关行</div><div class="t-support">未管理</div></div><div class="sw"></div></div>
+      </div>
+      <div class="note">行最小 64dp。整行可点。行内文字只说“是什么”和“现在怎样”。</div>
+      <div style="height:12px"></div>
+      <div class="seg"><div class="sel"><span class="ms">check</span>最近 7 天</div><div>最近 30 天</div></div>
+      <div class="note">单选分段：选中项加对勾，不只靠底色</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const s=new URLSearchParams(location.search).get('s')||'home';
+document.getElementById(s).classList.add('on');
+</script>
+</body>
+</html>

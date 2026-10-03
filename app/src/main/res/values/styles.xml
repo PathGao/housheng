@@ -1,7 +1,10 @@
 <resources>
     <style name="Theme.Housheng" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">@color/housheng_accent</item>
+        <item name="android:textColorPrimary">@color/housheng_text</item>
+        <item name="android:textColorSecondary">@color/housheng_text_secondary</item>
+        <item name="android:colorControlActivated">@color/housheng_primary</item>
+        <item name="android:colorAccent">@color/housheng_primary</item>
         <item name="android:windowBackground">@color/housheng_background</item>
         <item name="android:statusBarColor">@color/housheng_background</item>
         <item name="android:navigationBarColor">@color/housheng_background</item>
