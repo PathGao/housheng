@@ -31,15 +31,15 @@ class NotificationsActivity : Activity() {
         super.onCreate(savedInstanceState)
         Session.initialize(this)
         preferences = Preferences(this)
-        val body = ProductUi.page(this, "通知管理", "让有用的消息留下，减少不需要的打扰。")
-        val stateCard = ProductUi.card(this, "当前状态")
-        status = ProductUi.text(this, "正在检查…")
+        val body = LegacyUi.page(this, "通知管理", "让有用的消息留下，减少不需要的打扰。")
+        val stateCard = LegacyUi.card(this, "当前状态")
+        status = LegacyUi.text(this, "正在检查…")
         stateCard.addView(status)
-        stateCard.addView(ProductUi.button(this, "检查通知连接") { checkConnection() })
+        stateCard.addView(LegacyUi.button(this, "检查通知连接") { checkConnection() })
         execution = Switch(this).apply {
             text = "按规则清理通知"
             textSize = 19f
-            minHeight = ProductUi.dp(context, 64)
+            minHeight = LegacyUi.dp(context, 64)
             setOnCheckedChangeListener { _, checked ->
                 if (!refreshing) {
                     if (checked && !ServiceHealth(this@NotificationsActivity).notificationStatus().authorized) {
@@ -53,24 +53,24 @@ class NotificationsActivity : Activity() {
             }
         }
         stateCard.addView(execution)
-        stateCard.addView(ProductUi.text(this, "关闭时只记录所选来源的次数。开启后仅清理命中规则、允许移除的普通通知。电话、消息、闹钟及常驻通知始终保留。", 16f))
+        stateCard.addView(LegacyUi.text(this, "关闭时只记录所选来源的次数。开启后仅清理命中规则、允许移除的普通通知。电话、消息、闹钟及常驻通知始终保留。", 16f))
         body.addView(stateCard)
-        summary = ProductUi.text(this, "正在读取本机统计…")
-        body.addView(ProductUi.card(this, "最近 7 天").apply { addView(summary) })
-        body.addView(ProductUi.text(this, "选择要管理的应用", 23f, true))
-        body.addView(ProductUi.text(this, "只处理你勾选的来源。取消后停止新记录，过去的统计仍保留。浏览器和聊天应用不在名单中。", 16f))
+        summary = LegacyUi.text(this, "正在读取本机统计…")
+        body.addView(LegacyUi.card(this, "最近 7 天").apply { addView(summary) })
+        body.addView(LegacyUi.text(this, "选择要管理的应用", 23f, true))
+        body.addView(LegacyUi.text(this, "只处理你勾选的来源。取消后停止新记录，过去的统计仍保留。浏览器和聊天应用不在名单中。", 16f))
         for ((source, name) in AppCatalog.sources.filterKeys { it != AppCatalog.FIXTURE }) {
-            val card = ProductUi.card(this, name)
-            card.addView(ProductUi.text(this, "正在读取统计…", 16f).also { sourceCounts[source] = it })
+            val card = LegacyUi.card(this, name)
+            card.addView(LegacyUi.text(this, "正在读取统计…", 16f).also { sourceCounts[source] = it })
             val selected = CheckBox(this).apply {
                 text = "记录并管理通知"; textSize = 18f
-                minHeight = ProductUi.dp(context, 56)
+                minHeight = LegacyUi.dp(context, 56)
                 isChecked = source in preferences.selected("notifications")
                 contentDescription = "$name 通知来源"
             }
             val allow = CheckBox(this).apply {
                 text = "这个应用始终放行"; textSize = 18f
-                minHeight = ProductUi.dp(context, 56)
+                minHeight = LegacyUi.dp(context, 56)
                 isChecked = preferences.alwaysAllow(source)
                 isEnabled = selected.isChecked
                 contentDescription = "$name 始终放行"
@@ -81,12 +81,12 @@ class NotificationsActivity : Activity() {
                 allow.isEnabled = checked
             }
             card.addView(selected); card.addView(allow)
-            card.addView(ProductUi.button(this, "系统通知设置") {
+            card.addView(LegacyUi.button(this, "系统通知设置") {
                 openSettings(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, source))
             })
             body.addView(card)
         }
-        val ruleCard = ProductUi.card(this, "由家人设置清理规则", "当前使用关键词，不是 AI 判断。仅对没有选择“始终放行”的来源生效。每行一个词，最多 32 行、2000 字。")
+        val ruleCard = LegacyUi.card(this, "由家人设置清理规则", "当前使用关键词，不是 AI 判断。仅对没有选择“始终放行”的来源生效。每行一个词，最多 32 行、2000 字。")
         rules = EditText(this).apply {
             textSize = 18f
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
@@ -96,7 +96,7 @@ class NotificationsActivity : Activity() {
             setText(savedInstanceState?.getString("draftRules") ?: preferences.ruleText())
         }
         ruleCard.addView(rules)
-        ruleCard.addView(ProductUi.button(this, "保存规则", true) {
+        ruleCard.addView(LegacyUi.button(this, "保存规则", true) {
             val terms = rules.text.toString().lines().map { it.trim() }.filter { it.isNotEmpty() }.distinct()
             val value = terms.joinToString("\n")
             if (terms.size > 32 || value.length > 2000) {
@@ -108,7 +108,7 @@ class NotificationsActivity : Activity() {
             }
         })
         body.addView(ruleCard)
-        body.addView(ProductUi.text(this, "清理发生在通知到达之后，已经响起的声音或弹出的横幅可能仍会出现。需要彻底关闭某类通知时，请使用上方系统设置。", 16f))
+        body.addView(LegacyUi.text(this, "清理发生在通知到达之后，已经响起的声音或弹出的横幅可能仍会出现。需要彻底关闭某类通知时，请使用上方系统设置。", 16f))
     }
 
     override fun onStart() { super.onStart(); Session.observeState(stateObserver) }

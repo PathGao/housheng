@@ -28,31 +28,31 @@ class ReportActivity : Activity() {
         super.onCreate(savedInstanceState)
         Session.initialize(this)
         days = savedInstanceState?.getInt("days", 7) ?: 7
-        val body = ProductUi.page(this, "给孩子看一眼", "先在这里看清楚，再决定是否分享。")
-        val controls = ProductUi.card(this, "选择报告范围", "统计保存在这台手机上，最多保留最近 30 天。分享不会自动发送给任何人。")
-        controls.addView(ProductUi.button(this, "最近 7 天") { days = 7; load() }.also { periodButtons.add(it) })
-        controls.addView(ProductUi.button(this, "最近 30 天") { days = 30; load() }.also { periodButtons.add(it) })
+        val body = LegacyUi.page(this, "给孩子看一眼", "先在这里看清楚，再决定是否分享。")
+        val controls = LegacyUi.card(this, "选择报告范围", "统计保存在这台手机上，最多保留最近 30 天。分享不会自动发送给任何人。")
+        controls.addView(LegacyUi.button(this, "最近 7 天") { days = 7; load() }.also { periodButtons.add(it) })
+        controls.addView(LegacyUi.button(this, "最近 30 天") { days = 30; load() }.also { periodButtons.add(it) })
         includeApps = CheckBox(this).apply {
             text = "报告中包含本机应用清单"
             textSize = 18f
-            minHeight = ProductUi.dp(context, 56)
+            minHeight = LegacyUi.dp(context, 56)
             isChecked = savedInstanceState?.getBoolean("includeApps") ?: false
             setOnCheckedChangeListener { _, _ -> load() }
         }
         controls.addView(includeApps)
-        controls.addView(ProductUi.text(this, "勾选后才查询有桌面入口的应用名称和安装时间，不读取应用内容。近 30 天安装不代表有害。", 16f))
-        refresh = ProductUi.button(this, "重新生成报告") { load() }
+        controls.addView(LegacyUi.text(this, "勾选后才查询有桌面入口的应用名称和安装时间，不读取应用内容。近 30 天安装不代表有害。", 16f))
+        refresh = LegacyUi.button(this, "重新生成报告") { load() }
         controls.addView(refresh)
         body.addView(controls)
-        preview = ProductUi.text(this, "正在整理报告…", 18f).apply { setTextIsSelectable(true) }
-        body.addView(ProductUi.card(this, "报告预览").apply { addView(preview) })
-        copy = ProductUi.button(this, "复制报告") {
+        preview = LegacyUi.text(this, "正在整理报告…", 18f).apply { setTextIsSelectable(true) }
+        body.addView(LegacyUi.card(this, "报告预览").apply { addView(preview) })
+        copy = LegacyUi.button(this, "复制报告") {
             report?.let {
                 getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("后生家庭报告", it))
                 Toast.makeText(this, "已复制，可粘贴给孩子", Toast.LENGTH_SHORT).show()
             }
         }
-        share = ProductUi.button(this, "选择分享给谁", true) {
+        share = LegacyUi.button(this, "选择分享给谁", true) {
             report?.let { text ->
                 val intent = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
                 runCatching { startActivity(Intent.createChooser(intent, "分享后生家庭报告")) }
@@ -63,9 +63,9 @@ class ReportActivity : Activity() {
             }
         }
         body.addView(copy); body.addView(share)
-        body.addView(ProductUi.text(this, "孩子可以根据报告帮你调整来源和关键词。当前版本需要在这台手机上修改设置，不能远程控制手机。", 16f))
-        body.addView(ProductUi.card(this, "本机记录管理", "清空会删除通知汇总和连接记录，不修改系统权限或通知规则。之后收到的新通知会重新开始统计。").apply {
-            addView(ProductUi.button(this@ReportActivity, "清空历史统计") {
+        body.addView(LegacyUi.text(this, "孩子可以根据报告帮你调整来源和关键词。当前版本需要在这台手机上修改设置，不能远程控制手机。", 16f))
+        body.addView(LegacyUi.card(this, "本机记录管理", "清空会删除通知汇总和连接记录，不修改系统权限或通知规则。之后收到的新通知会重新开始统计。").apply {
+            addView(LegacyUi.button(this@ReportActivity, "清空历史统计") {
                 AlertDialog.Builder(this@ReportActivity).setTitle("清空本机历史统计？")
                     .setMessage("过去的统计无法恢复，已经分享出去的报告不会被删除。")
                     .setPositiveButton("清空记录") { _, _ -> clearHistory() }.setNegativeButton("保留", null).show()

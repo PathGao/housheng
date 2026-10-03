@@ -29,19 +29,19 @@ class InventoryActivity : Activity() {
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        val body = ProductUi.page(this, "手机里的应用", "主动查询，一起核实。")
-        body.addView(ProductUi.text(this, "只查看应用名称和安装时间，不读取应用内容。清单留在本页，分享前可以预览。"))
-        scan = ProductUi.button(this, "读取 / 刷新清单", true) { scan() }
+        val body = LegacyUi.page(this, "手机里的应用", "主动查询，一起核实。")
+        body.addView(LegacyUi.text(this, "只查看应用名称和安装时间，不读取应用内容。清单留在本页，分享前可以预览。"))
+        scan = LegacyUi.button(this, "读取 / 刷新清单", true) { scan() }
         body.addView(scan)
-        summary = ProductUi.text(this, "尚未读取。新安装不等于有害应用，需家人核实。")
+        summary = LegacyUi.text(this, "尚未读取。新安装不等于有害应用，需家人核实。")
         body.addView(summary)
-        body.addView(ProductUi.button(this, "预览、复制或分享给孩子") { preview() })
-        body.addView(ProductUi.text(this, "点选应用可打开系统详情，由家人决定是否卸载；后生不会自动卸载。"))
-        body.addView(ProductUi.button(this, "清空本页清单") { generation++; apps = emptyList(); scannedAt = 0; render() })
+        body.addView(LegacyUi.button(this, "预览、复制或分享给孩子") { preview() })
+        body.addView(LegacyUi.text(this, "点选应用可打开系统详情，由家人决定是否卸载；后生不会自动卸载。"))
+        body.addView(LegacyUi.button(this, "清空本页清单") { generation++; apps = emptyList(); scannedAt = 0; render() })
         (body.parent as ViewGroup).removeView(body)
         list = ListView(this).apply {
             setBackgroundColor(getColor(R.color.housheng_background))
-            dividerHeight = ProductUi.dp(this@InventoryActivity, 8)
+            dividerHeight = LegacyUi.dp(this@InventoryActivity, 8)
             addHeaderView(body, null, false)
             setOnApplyWindowInsetsListener { view, insets ->
                 val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
@@ -97,9 +97,9 @@ class InventoryActivity : Activity() {
                     textSize = 18f
                     setTextColor(getColor(R.color.housheng_text))
                     setBackgroundColor(getColor(R.color.housheng_surface))
-                    setPadding(ProductUi.dp(context, 24), ProductUi.dp(context, 20), ProductUi.dp(context, 24), ProductUi.dp(context, 20))
-                    minHeight = ProductUi.dp(context, 72)
-                    setLineSpacing(ProductUi.dp(context, 4).toFloat(), 1f)
+                    setPadding(LegacyUi.dp(context, 24), LegacyUi.dp(context, 20), LegacyUi.dp(context, 24), LegacyUi.dp(context, 20))
+                    minHeight = LegacyUi.dp(context, 72)
+                    setLineSpacing(LegacyUi.dp(context, 4).toFloat(), 1f)
                 }
             }
         }

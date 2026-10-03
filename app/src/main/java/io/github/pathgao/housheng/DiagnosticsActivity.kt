@@ -25,7 +25,7 @@ class DiagnosticsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Session.initialize(this)
-        body = ProductUi.page(this, "设置与诊断", "供孩子协助设置和开发验证")
+        body = LegacyUi.page(this, "设置与诊断", "供孩子协助设置和开发验证")
         label("日常规则使用本地关键词。只有验证场开放页面读取和自动翻页；调试版可通过 USB 验证本机模型。", 18f)
         button("应用清单 / 近30天安装 / 分享给孩子") { startActivity(Intent(this, InventoryActivity::class.java)) }
         button("查看本次信息流统计") {
@@ -155,8 +155,8 @@ class DiagnosticsActivity : Activity() {
         super.onResume()
         refresh()
     }
-    private fun label(value: String, size: Float = 18f): TextView = ProductUi.text(this, value, maxOf(size, 18f)).also { body.addView(it) }
-    private fun button(value: String, action: () -> Unit) { body.addView(ProductUi.button(this, value, action = action)) }
+    private fun label(value: String, size: Float = 18f): TextView = LegacyUi.text(this, value, maxOf(size, 18f)).also { body.addView(it) }
+    private fun button(value: String, action: () -> Unit) { body.addView(LegacyUi.button(this, value, action = action)) }
     private fun toast(message: String) { Toast.makeText(this, message, Toast.LENGTH_SHORT).show() }
     private fun openSettings(action: String, source: String? = null) {
         runCatching { startActivity(Intent(action).apply { source?.let { putExtra(Settings.EXTRA_APP_PACKAGE, it) } }) }
