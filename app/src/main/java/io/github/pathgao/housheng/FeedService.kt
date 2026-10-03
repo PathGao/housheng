@@ -15,6 +15,7 @@ class FeedService : AccessibilityService() {
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
     private val gate = ActionGate()
+    private val realFeeds by lazy { RealFeedController(this) }
     private var generation = 0L
     private var busy = false
     private var pending: Pair<Page, PageToken>? = null
@@ -37,6 +38,7 @@ class FeedService : AccessibilityService() {
     }
     override fun onDestroy() {
         alive = false
+        realFeeds.close()
         invalidate()
         main.removeCallbacksAndMessages(null)
         worker.shutdownNow()
@@ -45,7 +47,7 @@ class FeedService : AccessibilityService() {
         super.onDestroy()
     }
 
-    fun invalidate() { generation++; gate.current = null; lastSignature = ""; pending = null }
+    fun invalidate() { realFeeds.clear(); generation++; gate.current = null; lastSignature = ""; pending = null }
     fun cancelCapture() { captureRequest++ }
 
     private data class Page(val source: String, val text: String, val item: String?)
@@ -72,6 +74,10 @@ class FeedService : AccessibilityService() {
         val start = Session.now()
         val root = rootInActiveWindow ?: run { invalidate(); return }
         val page = try {
+            if (realFeeds.observe(root, event)) {
+                gate.current = null; lastSignature = ""; pending = null
+                return
+            }
             if (root.packageName?.toString() !in Preferences(this).selected("pages")) {
                 invalidate()
                 return

@@ -1,7 +1,6 @@
 package io.github.pathgao.housheng
 
 import android.widget.LinearLayout
-import android.widget.Switch
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -53,6 +52,9 @@ class LoopbackModelClient(private val port: Int = 18765, private val timeoutMs: 
 }
 
 object ModelValidation {
+    var realEnabled = false
+        set(value) { field = value; FeedService.instance?.invalidate() }
+
     var enabled = false
         set(value) { field = value; FeedService.instance?.invalidate() }
 
@@ -77,13 +79,21 @@ object ModelValidation {
     }
 
     fun addControls(body: LinearLayout) {
+        body.addView(ProductUi.switchRow(body.context, "小红书真实信息流", "仅发现页卡片标题，发送给 Clef 判断").apply {
+            isChecked = realEnabled
+            setOnCheckedChangeListener { _, checked ->
+                if (!checked) realEnabled = false
+                else android.app.AlertDialog.Builder(context).setTitle("启用小红书筛选？")
+                    .setMessage("将发现页公开卡片标题发送给 Cloudflare Clef。不会上传图片、作者、评论或私信。开启内容处理后，命中卡片会遮挡，可点按恢复。当前适配小红书 9.49.0，其他版本保留原页。")
+                    .setPositiveButton("启用") { _, _ -> realEnabled = true }
+                    .setNegativeButton("取消") { _, _ -> isChecked = false }
+                    .setOnCancelListener { isChecked = false }.show()
+            }
+        })
         body.addView(ProductUi.button(body.context, "配置 Clef API / 测试连接") {
             body.context.startActivity(android.content.Intent(body.context, ClefSettingsActivity::class.java))
         })
-        body.addView(Switch(body.context).apply {
-            text = "验证场使用 Clef 模型"
-            textSize = 18f
-            minHeight = (56 * resources.displayMetrics.density).toInt()
+        body.addView(ProductUi.switchRow(body.context, "验证场使用 Clef 模型").apply {
             isChecked = enabled
             setOnCheckedChangeListener { _, checked -> enabled = checked }
         })

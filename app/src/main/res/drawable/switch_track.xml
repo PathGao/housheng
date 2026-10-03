@@ -1,0 +1,11 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:state_checked="true">
+        <shape><size android:width="52dp" android:height="32dp"/><corners android:radius="16dp"/><solid android:color="@color/housheng_divider"/></shape>
+    </item>
+    <item android:state_checked="true">
+        <shape><size android:width="52dp" android:height="32dp"/><corners android:radius="16dp"/><solid android:color="@color/housheng_primary"/></shape>
+    </item>
+    <item>
+        <shape><size android:width="52dp" android:height="32dp"/><corners android:radius="16dp"/><solid android:color="@color/housheng_surface_variant"/><stroke android:width="2dp" android:color="@color/housheng_outline"/></shape>
+    </item>
+</selector>

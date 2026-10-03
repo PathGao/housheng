@@ -1,6 +1,6 @@
 # Clef Flash 技术验证
 
-2026-10-03。替代当前 Laya 测试入口，使用同一份固定合成样本和判断规则。旧脚本和结果已归档到源码旁 housheng-notes/development-archive/2026-10-03/laya-validation/，本机旧权重不再被调用。
+2026-10-03。使用固定合成样本和判断规则验证 Clef Flash。模型规则、样本和评估结果均以本仓库为准。
 
 ## 手机独立调用
 

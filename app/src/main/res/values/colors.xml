@@ -1,11 +1,23 @@
 <resources>
-    <color name="housheng_background">#F6F4EE</color>
+    <color name="housheng_background">#F2F4F3</color>
     <color name="housheng_surface">#FFFFFF</color>
-    <color name="housheng_text">#203B36</color>
-    <color name="housheng_secondary">#52655F</color>
-    <color name="housheng_accent">#205D50</color>
-    <color name="housheng_on_accent">#FFFFFF</color>
-    <color name="housheng_outline">#69857C</color>
-    <color name="housheng_ripple">#3369857C</color>
+    <color name="housheng_surface_variant">#E9EEEC</color>
+    <color name="housheng_text">#1B2622</color>
+    <color name="housheng_text_secondary">#56635F</color>
+    <color name="housheng_disabled">#8C9693</color>
+    <color name="housheng_outline">#8A9893</color>
+    <color name="housheng_divider">#D9DFDD</color>
+    <color name="housheng_primary">#0B6B62</color>
+    <color name="housheng_on_primary">#FFFFFF</color>
+    <color name="housheng_primary_container">#D5F2EE</color>
+    <color name="housheng_ripple">#290B6B62</color>
+    <color name="housheng_ok">#1D6B3A</color>
+    <color name="housheng_ok_container">#E2F2E7</color>
+    <color name="housheng_neutral">#46525A</color>
+    <color name="housheng_neutral_container">#E8ECEE</color>
+    <color name="housheng_warning">#7A4E00</color>
+    <color name="housheng_warning_container">#FCEFD4</color>
+    <color name="housheng_error">#A8261D</color>
+    <color name="housheng_error_container">#FBE5E2</color>
     <color name="housheng_icon_background">#B9F2EC</color>
 </resources>
