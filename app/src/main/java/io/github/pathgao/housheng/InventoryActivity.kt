@@ -53,7 +53,7 @@ class InventoryActivity : Activity() {
         super.onCreate(state)
         val page = ProductUi.page(this, "应用清单")
         refresh = ProductUi.appBarAction(page, "刷新") { scan() }
-        val gutter = if (resources.configuration.screenWidthDp >= 600) 48 else 16
+        val gutter = gutter(resources.configuration.screenWidthDp)
         summary = ProductUi.text(this, "", Type.SUPPORT).apply {
             accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
             setPadding(dp(4), dp(8), dp(4), 0)
