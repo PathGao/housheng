@@ -12,7 +12,9 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.TextUtils
 import android.text.style.ForegroundColorSpan
+import android.text.style.ImageSpan
 import android.text.style.RelativeSizeSpan
+import android.text.style.TypefaceSpan
 import android.view.Gravity
 import android.view.View
 import android.view.ViewOutlineProvider
@@ -176,6 +178,7 @@ object ProductUi {
             append("\n").append(support)
             setSpan(RelativeSizeSpan(Type.SUPPORT.sp / Type.LABEL.sp), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             setSpan(ForegroundColorSpan(color(context, R.color.housheng_text_secondary)), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(TypefaceSpan(Typeface.create(Typeface.DEFAULT, Type.SUPPORT.weight, false)), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
     }
 
@@ -297,8 +300,10 @@ object ProductUi {
         val check = context.getDrawable(R.drawable.ic_check)!!.mutate().apply {
             setTint(color(context, R.color.housheng_primary)); setBounds(0, 0, dp(context, 20), dp(context, 20))
         }
-        fun mark(button: RadioButton) {
-            button.setCompoundDrawablesRelative(if (button.isChecked) check else null, null, null, null)
+        fun mark(button: RadioButton, label: String) {
+            button.text = if (button.isChecked) SpannableStringBuilder("  $label").apply {
+                setSpan(ImageSpan(check, ImageSpan.ALIGN_CENTER), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            } else label
             button.setTextColor(color(context, if (button.isChecked) R.color.housheng_primary else R.color.housheng_text))
             button.setBackgroundColor(if (button.isChecked) color(context, R.color.housheng_primary_container) else 0)
         }
@@ -310,13 +315,13 @@ object ProductUi {
                 typeface = Typeface.create(Typeface.DEFAULT, 500, false)
                 buttonDrawable = null
                 gravity = Gravity.CENTER
-                compoundDrawablePadding = dp(context, 6)
                 minHeight = dp(context, 60)
                 setPadding(dp(context, 12), 0, dp(context, 12), 0)
                 layoutParams = RadioGroup.LayoutParams(0, -2, 1f)
                 isChecked = index == selected
-                setOnCheckedChangeListener { button, checked -> mark(button as RadioButton); if (checked) onSelect(index) }
-                mark(this)
+                contentDescription = option
+                setOnCheckedChangeListener { button, checked -> mark(button as RadioButton, option); if (checked) onSelect(index) }
+                mark(this, option)
             })
         }
         layoutParams = LinearLayout.LayoutParams(-1, -2)
