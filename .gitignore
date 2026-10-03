@@ -8,3 +8,6 @@ artifacts/
 *.jks
 *.keystore
 .DS_Store
+
+__pycache__/
+*.pyc

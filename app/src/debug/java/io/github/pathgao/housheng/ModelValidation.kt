@@ -7,43 +7,48 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.UUID
 
-class LoopbackModelClient(private val port: Int = 18765) {
+internal class ModelHttpException(val status: Int) : java.io.IOException("HTTP $status")
+
+internal fun postModelJson(url: String, body: JSONObject, timeoutMs: Int, token: String? = null, maxBytes: Int = 4096): JSONObject {
+    val bytes = body.toString().toByteArray(Charsets.UTF_8)
+    val connection = URL(url).openConnection() as HttpURLConnection
+    val started = Session.now()
+    try {
+        connection.requestMethod = "POST"
+        connection.connectTimeout = minOf(1000, timeoutMs)
+        connection.readTimeout = timeoutMs
+        connection.instanceFollowRedirects = false
+        connection.doOutput = true
+        connection.setRequestProperty("Content-Type", "application/json")
+        token?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
+        connection.setFixedLengthStreamingMode(bytes.size)
+        connection.outputStream.use { it.write(bytes) }
+        if (connection.responseCode != 200) throw ModelHttpException(connection.responseCode)
+        val result = ByteArray(maxBytes + 1)
+        var size = 0
+        connection.inputStream.use { input ->
+            while (size < result.size) {
+                val remaining = timeoutMs - (Session.now() - started)
+                check(remaining > 0) { "expired result" }
+                connection.readTimeout = remaining.toInt()
+                val count = input.read(result, size, result.size - size)
+                if (count < 0) break
+                size += count
+            }
+        }
+        check(size <= maxBytes && Session.now() - started < timeoutMs) { "oversized or expired result" }
+        return JSONObject(String(result, 0, size, Charsets.UTF_8))
+    } finally { connection.disconnect() }
+}
+
+class LoopbackModelClient(private val port: Int = 18765, private val timeoutMs: Int = 2800) {
     fun classify(text: String): String {
         require(text.isNotBlank() && text.length <= 4000)
         val requestId = UUID.randomUUID().toString()
-        val body = JSONObject().put("request_id", requestId).put("source", Session.FIXTURE)
-            .put("text", text).toString().toByteArray(Charsets.UTF_8)
-        val connection = URL("http://127.0.0.1:$port/v1/classify").openConnection() as HttpURLConnection
-        val started = Session.now()
-        try {
-            connection.requestMethod = "POST"
-            connection.connectTimeout = 100
-            connection.readTimeout = 350
-            connection.instanceFollowRedirects = false
-            connection.doOutput = true
-            connection.setRequestProperty("Content-Type", "application/json")
-            connection.setFixedLengthStreamingMode(body.size)
-            connection.outputStream.use { it.write(body) }
-            check(connection.responseCode == 200) { "HTTP ${connection.responseCode}" }
-            val bytes = ByteArray(4097)
-            var size = 0
-            connection.inputStream.use { input ->
-                while (size < bytes.size) {
-                    val remaining = 500 - (Session.now() - started)
-                    check(remaining > 0) { "expired result" }
-                    connection.readTimeout = minOf(350, remaining.toInt())
-                    val count = input.read(bytes, size, bytes.size - size)
-                    if (count < 0) break
-                    size += count
-                }
-            }
-            check(size <= 4096 && Session.now() - started < 500) { "oversized or expired result" }
-            val result = JSONObject(String(bytes, 0, size, Charsets.UTF_8))
-            check(result.getString("request_id") == requestId) { "mismatched request" }
-            val decision = result.getString("decision")
-            check(decision in setOf("keep", "filter", "uncertain")) { "unknown decision" }
-            return decision
-        } finally { connection.disconnect() }
+        val body = JSONObject().put("request_id", requestId).put("source", Session.FIXTURE).put("text", text)
+        val result = postModelJson("http://127.0.0.1:$port/v1/classify", body, timeoutMs)
+        check(result.getString("request_id") == requestId) { "mismatched request" }
+        return result.getString("decision").also { check(it in setOf("keep", "filter", "uncertain")) { "unknown decision" } }
     }
 }
 
@@ -51,12 +56,17 @@ object ModelValidation {
     var enabled = false
         set(value) { field = value; FeedService.instance?.invalidate() }
 
+    fun maxAgeMs(source: String): Long = if (enabled && source == Session.FIXTURE) 3000 else 500
+
+    fun classify(context: android.content.Context, text: String): String =
+        if (ClefCredentials(context).direct) ClefApiClient(context).classify(text) else LoopbackModelClient().classify(text)
+
     fun classifier(source: String, fallback: Classifier): Classifier {
         if (!enabled || source != Session.FIXTURE) return fallback
         return Classifier { text ->
             val started = Session.now()
             try {
-                val result = LoopbackModelClient().classify(text)
+                val result = classify(FeedService.instance ?: error("page service disconnected"), text)
                 Session.record("模型 · $result · ${Session.now() - started}ms")
                 if (result == "filter") Decision.SKIP else Decision.KEEP
             } catch (error: Exception) {
@@ -67,8 +77,11 @@ object ModelValidation {
     }
 
     fun addControls(body: LinearLayout) {
+        body.addView(ProductUi.button(body.context, "配置 Clef API / 测试连接") {
+            body.context.startActivity(android.content.Intent(body.context, ClefSettingsActivity::class.java))
+        })
         body.addView(Switch(body.context).apply {
-            text = "验证场使用本机模型（需 USB 连接）"
+            text = "验证场使用 Clef 模型"
             textSize = 18f
             minHeight = (56 * resources.displayMetrics.density).toInt()
             isChecked = enabled

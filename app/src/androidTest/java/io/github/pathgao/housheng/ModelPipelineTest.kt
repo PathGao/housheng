@@ -67,4 +67,17 @@ class ModelPipelineTest {
             }
         }
     }
+
+    @Test fun changingPageWhileCloudRequestRunsDiscardsOldFilter() {
+        onMain { Session.feedExecution = true }
+        scene("model-feed")
+        await("first card observed") { Session.latestPage.contains("必须转发二十个群") }
+        scene("unknown")
+        await("new protected card observed") { Session.latestPage.contains("未知类型") }
+        await("old model result returns") { Session.journal().contains("模型 · filter") }
+        onMain {
+            assertTrue(Session.journal(), Session.journal().contains("判定丢弃 · 页面已变化"))
+            assertFalse(Session.journal().contains("翻页 · 已执行"))
+        }
+    }
 }

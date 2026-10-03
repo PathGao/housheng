@@ -38,6 +38,16 @@ class DecisionPolicyTest {
         assertFalse(gate().claim(page, Decision.SKIP, 1500))
         assertFalse(gate().claim(page, Decision.SKIP, 999))
     }
+    @Test fun cloudDeadlineDoesNotRelaxPageOrExecutionGuards() {
+        val cloud = page.copy(maxAgeMs = 3000)
+        fun cloudGate() = ActionGate().apply { enabled = true; current = cloud }
+        assertTrue(cloudGate().claim(cloud, Decision.SKIP, 2108))
+        assertFalse(cloudGate().claim(cloud, Decision.SKIP, 4000))
+        assertFalse(cloudGate().apply { enabled = false }.claim(cloud, Decision.SKIP, 2108))
+        assertFalse(cloudGate().apply { current = cloud.copy(generation = 2) }.claim(cloud, Decision.SKIP, 2108))
+        assertFalse(cloudGate().claim(cloud, Decision.KEEP, 2108))
+    }
+
     @Test fun nextPageCanActButRejectedDecisionDoesNotConsumePage() {
         val gate = gate()
         assertFalse(gate.claim(page, Decision.KEEP, 1200))

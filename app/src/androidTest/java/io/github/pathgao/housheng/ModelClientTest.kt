@@ -41,7 +41,7 @@ class ModelClientTest {
                     }
                 }
             }
-            try { test(LoopbackModelClient(server.localPort)) } finally { server.close(); worker.join(3000) }
+            try { test(LoopbackModelClient(server.localPort, timeoutMs = 500)) } finally { server.close(); worker.join(3000) }
             assertFalse("test server must stop", worker.isAlive)
         }
     }
@@ -71,10 +71,10 @@ class ModelClientTest {
             assertTrue("request should expire before delayed response", Session.now() - start < 650)
         }
     }
-    @Test fun realLayaAcrossUsb() {
+    @Test fun realClefOnSelectedTransport() {
         val start = Session.now()
-        val choice = LoopbackModelClient().classify("这条消息必须转发二十个群，不转发的家庭一定会遭灾！")
-        assertTrue(choice in setOf("keep", "filter", "uncertain"))
+        val choice = ModelValidation.classify(InstrumentationRegistry.getInstrumentation().targetContext, "这条消息必须转发二十个群，不转发的家庭一定会遭灾！")
+        assertEquals("filter", choice)
         InstrumentationRegistry.getInstrumentation().sendStatus(0, Bundle().apply {
             putString("modelRoundtrip", "$choice · ${Session.now() - start}ms")
         })

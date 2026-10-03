@@ -81,7 +81,7 @@ class FeedService : AccessibilityService() {
         val signature = "${page.source}\u0000${page.item}\u0000${page.text}"
         if (signature == lastSignature) return
         lastSignature = signature
-        val token = PageToken(page.source, signature, ++generation, start, if (page.item != null) ContentKind.USER_CONTENT else ContentKind.UNKNOWN)
+        val token = PageToken(page.source, signature, ++generation, start, if (page.item != null) ContentKind.USER_CONTENT else ContentKind.UNKNOWN, ModelValidation.maxAgeMs(page.source))
         gate.current = token
         pending = null
         Session.statistics.record(token)

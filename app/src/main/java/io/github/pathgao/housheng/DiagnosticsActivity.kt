@@ -26,7 +26,7 @@ class DiagnosticsActivity : Activity() {
         super.onCreate(savedInstanceState)
         Session.initialize(this)
         body = ProductUi.page(this, "设置与诊断", "供孩子协助设置和开发验证")
-        label("日常规则使用本地关键词。只有验证场开放页面读取和自动翻页；调试版可通过 USB 验证本机模型。", 18f)
+        label("日常规则使用本地关键词。只有验证场开放页面读取和自动翻页；调试版可配置 Clef API，选择手机直连或 USB 电脑调用。", 18f)
         button("应用清单 / 近30天安装 / 分享给孩子") { startActivity(Intent(this, InventoryActivity::class.java)) }
         button("查看本次信息流统计") {
             fun counts(testData: Boolean): String {
@@ -35,7 +35,7 @@ class DiagnosticsActivity : Activity() {
                 return "观察到 ${counts.values.sum()} 次内容展示\n" + counts.entries.joinToString("\n") { "${it.key.label}：${it.value}次" }
             }
             AlertDialog.Builder(this).setTitle("本次信息流统计")
-                .setMessage("真实应用\n${counts(false)}\n\n验证场（不计入父母统计）\n${counts(true)}\n\n模型未接入，内容记为未分类。真实应用未完成页面适配，不采集样本。次数表示观察到的展示，不代表观看时长。仅保存在本次进程，清空记录或进程结束后清除。")
+                .setMessage("真实应用\n${counts(false)}\n\n验证场（不计入父母统计）\n${counts(true)}\n\n模型仅返回保留、过滤或不确定，不输出话题，内容记为未分类。真实应用未完成页面适配，不采集样本。次数表示观察到的展示，不代表观看时长。仅保存在本次进程，清空记录或进程结束后清除。")
                 .setPositiveButton("关闭", null).show()
         }
         status = label("", 15f)

@@ -1,11 +1,9 @@
 """Loopback-only validation bridge. No phone content is stored."""
 import argparse
 import json
-import os
 import re
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from pathlib import Path
 
 FIXTURE = "io.github.pathgao.housheng.fixture"
 LABELS = {"keep", "filter", "uncertain"}
@@ -23,7 +21,7 @@ def classify_request(body, predict):
     if decision not in LABELS:
         raise ValueError("invalid model decision")
     return {"request_id": request_id, "decision": decision,
-            "model": "laya-multilingual", "elapsed_ms": round((time.perf_counter() - started) * 1000, 3)}
+            "model": "clef-flash", "elapsed_ms": round((time.perf_counter() - started) * 1000, 3)}
 
 
 def make_server(predict, port=18765):
@@ -49,7 +47,7 @@ def make_server(predict, port=18765):
 
         def do_GET(self):
             if self.path == "/health":
-                self.respond(200, {"model": "laya-multilingual", "ready": True})
+                self.respond(200, {"model": "clef-flash", "ready": True})
             else:
                 self.respond(404, {"error": "not_found"})
 
@@ -78,23 +76,16 @@ def make_server(predict, port=18765):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--device", choices=("mps", "cpu"), default="mps")
     parser.add_argument("--port", type=int, default=18765)
     args = parser.parse_args()
-    os.environ["HF_HUB_OFFLINE"] = "1"
-    os.environ["TRANSFORMERS_OFFLINE"] = "1"
-    import laya
-    agent = laya.load(".tools/laya-model", device=args.device)
-    questions = json.loads((Path(__file__).parent / "questions.json").read_text())
+    from client import ClefClient
+    client = ClefClient()
 
     def predict(text):
-        response = agent.predict(text, questions, lang="zh", max_len=1024)
-        return "uncertain" if response["usage"]["truncated"] else response["answers"]["decision"]["choice"]
+        return client.predict(text)[0]["choice"]
 
-    for _ in range(5):
-        predict("合成内容，用于预热模型。")
     server = make_server(predict, args.port)
-    print(json.dumps({"ready": True, "address": server.server_address, "device": str(agent.device)}), flush=True)
+    print(json.dumps({"ready": True, "address": server.server_address, "model": "clef-flash"}), flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

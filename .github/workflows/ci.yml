@@ -82,6 +82,6 @@ jobs:
         with:
           python-version: '3.12'
       - name: 运行无模型依赖的协议与指标测试
-        run: python -m unittest discover -s validation/laya -p 'test_*.py' -v
+        run: python -m unittest discover -s validation/clef -p 'test_*.py' -v
       - name: 检查 Shell 入口语法
-        run: sh -n scripts/build-local.sh scripts/test-device.sh validation/laya/python.sh validation/laya/setup.sh
+        run: sh -n scripts/build-local.sh scripts/test-device.sh

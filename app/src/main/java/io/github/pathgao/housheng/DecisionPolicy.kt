@@ -8,14 +8,14 @@ class KeywordClassifier(private val terms: List<String>) : Classifier {
     override fun classify(text: String) = if (terms.any { it.trim().isNotEmpty() && text.contains(it.trim(), ignoreCase = true) }) Decision.SKIP else Decision.KEEP
 }
 
-data class PageToken(val source: String, val item: String, val generation: Long, val observedAt: Long, val kind: ContentKind = ContentKind.UNKNOWN)
+data class PageToken(val source: String, val item: String, val generation: Long, val observedAt: Long, val kind: ContentKind = ContentKind.UNKNOWN, val maxAgeMs: Long = 500)
 
 class ActionGate {
     var current: PageToken? = null
     var enabled = false
     private var consumed: PageToken? = null
     fun claim(token: PageToken, decision: Decision, now: Long): Boolean {
-        if (!enabled || token.kind != ContentKind.USER_CONTENT || decision != Decision.SKIP || current != token || consumed == token || now - token.observedAt !in 0 until 500) return false
+        if (!enabled || token.kind != ContentKind.USER_CONTENT || decision != Decision.SKIP || current != token || consumed == token || now - token.observedAt !in 0 until token.maxAgeMs) return false
         consumed = token
         return true
     }
