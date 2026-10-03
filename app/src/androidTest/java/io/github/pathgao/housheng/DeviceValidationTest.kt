@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class DeviceValidationTest {
     companion object {
         @JvmStatic @BeforeClass fun connectServices() {
-            val component = "io.github.pathgao.housheng/io.github.pathgao.housheng.NotificationService"
+            val component = ComponentName(InstrumentationRegistry.getInstrumentation().targetContext, NotificationService::class.java).flattenToString()
             DeviceUi.shell("cmd notification disallow_listener $component")
             DeviceUi.shell("cmd notification allow_listener $component")
             DevicePreparation().reconnectServicesForInstrumentation()

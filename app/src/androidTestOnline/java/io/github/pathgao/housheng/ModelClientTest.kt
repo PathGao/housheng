@@ -73,7 +73,7 @@ class ModelClientTest {
     }
     @Test fun realClefOnSelectedTransport() {
         val start = Session.now()
-        val choice = ModelValidation.classify(InstrumentationRegistry.getInstrumentation().targetContext, "这条消息必须转发二十个群，不转发的家庭一定会遭灾！")
+        val choice = ModelTransport.classify(InstrumentationRegistry.getInstrumentation().targetContext, "这条消息必须转发二十个群，不转发的家庭一定会遭灾！")
         assertEquals("filter", choice)
         InstrumentationRegistry.getInstrumentation().sendStatus(0, Bundle().apply {
             putString("modelRoundtrip", "$choice · ${Session.now() - start}ms")

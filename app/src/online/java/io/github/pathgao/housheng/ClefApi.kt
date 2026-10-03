@@ -13,9 +13,6 @@ import javax.crypto.spec.GCMParameterSpec
 
 class ClefCredentials(context: Context) {
     private val prefs = context.getSharedPreferences("clef", Context.MODE_PRIVATE)
-    var direct: Boolean
-        get() = prefs.getBoolean("direct", true)
-        set(value) { check(prefs.edit().putBoolean("direct", value).commit()) }
 
     private fun key(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }

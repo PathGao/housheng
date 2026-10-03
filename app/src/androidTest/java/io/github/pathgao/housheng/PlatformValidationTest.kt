@@ -25,7 +25,7 @@ class PlatformValidationTest {
     private fun open(type: Class<out Activity>): Activity {
         // MIUI blocks launches from the background after instrumentation force-stops its target.
         instrumentation.getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES)
-            .executeShellCommand("am start -W -n ${context.packageName}/.MainActivity").use { descriptor ->
+            .executeShellCommand("am start -W -n ${context.packageName}/${MainActivity::class.java.name}").use { descriptor ->
                 FileInputStream(descriptor.fileDescriptor).use { it.readBytes() }
             }
         return instrumentation.startActivitySync(Intent(context, type).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))

@@ -7,9 +7,11 @@
 需要 JDK 17、Android SDK 35 和 Python 3 标准库，无模型权重和 Python 虚拟环境。现有本机工具位于 `.tools/jdk`、`.tools/android-sdk`，`scripts/build-local.sh` 自动使用这些路径，否则使用已配置工具链。Gradle 下载与缓存位于 `.gradle-home`。
 
 ```sh
-scripts/build-local.sh --no-daemon -Pkotlin.compiler.execution.strategy=in-process :app:testDebugUnitTest :app:lintDebug :fixture:lintDebug :app:assembleDebug :app:assembleRelease
+scripts/build-local.sh --no-daemon -Pkotlin.compiler.execution.strategy=in-process :app:testOfflineDebugUnitTest :app:testOnlineDebugUnitTest :app:lintOnlineDebug :app:lintOfflineRelease :fixture:lintDebug :app:assembleDebug :app:assembleRelease
 python3 -m unittest discover -s validation/clef -v
 ```
+
+主程序分两个 flavor：`offline` 包名 `io.github.pathgao.housheng`，无网络权限；`online` 包名加 `.online`，多出 `app/src/online` 下的 Clef、真实应用筛选和遮挡，服务名带“后生 AI”前缀。USB 电脑桥接和 127.0.0.1 明文放行只在 `app/src/onlineDebug`，正式版固定手机直连。类名两版相同，设备命令按包名区分。
 
 `.tools/clef.env` 只用于电脑端验证，不进 APK 或 Git。手机在后生内配置自己的凭据。`.tools/android-user/debug.keystore` 决定本机调试包的更新签名，不能作为缓存删除。
 
@@ -20,10 +22,10 @@ python3 -m unittest discover -s validation/clef -v
 真实小红书测试必须显式选择 `RealAppValidationTest`，不会混进日常回归。它需要已保存 Clef 凭据、小红书 9.49.0、已登录且处于首页发现页。它调用真实 API，验证实际卡片的读取、遮挡与恢复，不使用合成内容替代。
 
 ```sh
-adb shell am instrument -w -r -e realApps true -e class io.github.pathgao.housheng.RealAppValidationTest io.github.pathgao.housheng.test/androidx.test.runner.AndroidJUnitRunner
+adb shell am instrument -w -r -e realApps true -e class io.github.pathgao.housheng.RealAppValidationTest io.github.pathgao.housheng.online.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-合成场景继续作为回归工具检查过期结果、广告页、通知保护等边界。入口为 `scripts/test-device.sh --model direct`，安装主程序、独立验证场和两个测试组件。测试进程退出会强停主程序，脚本最后通过独立进程恢复服务。这种测试重连不能当作日常运行需要反复授权的证据。
+合成场景继续作为回归工具检查过期结果、广告页、通知保护等边界。入口为 `scripts/test-device.sh --model direct`，安装 online 调试版、独立验证场和两个测试组件。设 `HOUSHENG_FLAVOR=offline` 可在不联网调试版上跑不含模型的部分。测试进程退出会强停主程序，脚本最后通过独立进程恢复服务。这种测试重连不能当作日常运行需要反复授权的证据。
 
 交付手机只保留后生主程序。测试组件、验证场、临时凭据文件、截图缓存和 ADB 反向转发在收尾清理。真实内容截图和界面树不上传 GitHub。
 

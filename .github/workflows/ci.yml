@@ -36,24 +36,23 @@ jobs:
       - name: 单元测试、静态检查与全部构建
         run: >-
           ./gradlew --no-daemon --console=plain
-          :app:testDebugUnitTest :app:lintDebug :fixture:lintDebug
+          :app:testOfflineDebugUnitTest :app:testOnlineDebugUnitTest
+          :app:lintOnlineDebug :app:lintOfflineRelease :fixture:lintDebug
           :app:assembleDebug :fixture:assembleDebug
-          :app:assembleDebugAndroidTest :fixture:assembleDebugAndroidTest
+          :app:assembleOfflineDebugAndroidTest :app:assembleOnlineDebugAndroidTest :fixture:assembleDebugAndroidTest
           :app:assembleRelease
-      - name: 确认发行构建不请求网络权限
-        shell: bash
-        run: |
-          permissions="$($ANDROID_HOME/build-tools/35.0.0/aapt2 dump permissions app/build/outputs/apk/release/app-release-unsigned.apk)"
-          if grep -q 'android.permission.INTERNET' <<< "$permissions"; then
-            echo '::error::发行构建不应包含网络权限'
-            exit 1
-          fi
+      - name: 确认不联网版无权限、联网版只有网络权限
+        run: >-
+          scripts/check-permissions.sh "$ANDROID_HOME/build-tools/35.0.0/aapt2"
+          app/build/outputs/apk/offline/release/app-offline-release-unsigned.apk
+          app/build/outputs/apk/online/release/app-online-release-unsigned.apk
       - name: 保存家庭试用安装包
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: housheng-debug-apks
           path: |
-            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/offline/debug/app-offline-debug.apk
+            app/build/outputs/apk/online/debug/app-online-debug.apk
             fixture/build/outputs/apk/debug/fixture-debug.apk
           if-no-files-found: error
           retention-days: 14
