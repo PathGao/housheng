@@ -4,7 +4,7 @@
 
 ## 手机独立调用
 
-安装联网版“后生 AI”，打开 → 设置与诊断 → 配置 Clef API / 测试连接。打开“手机独立调用 API”，填入 Cloudflare Account ID 和 API Token，保存后点击测试连接。凭据使用 Android Keystore AES-GCM 加密保存，排除备份与设备迁移。只使用手机网络，断开 USB 后仍可请求 API。手机网络必须能访问 api.cloudflare.com。
+安装联网版“后生 AI”，打开 → 设置与诊断 → 配置 Clef API / 测试连接。调试包需打开“手机独立调用 API”，正式版固定直连。填入 Cloudflare Account ID 和 API Token，保存后点击测试连接。凭据使用 Android Keystore AES-GCM 加密保存，排除备份与设备迁移。只使用手机网络，断开 USB 后仍可请求 API。手机网络必须能访问 api.cloudflare.com。
 
 判断规则唯一来源是 app/src/online/assets/clef-questions.json，电脑客户端也读取该文件。验证场模型开关和各真实应用开关默认关闭，进程重启后关闭。验证场只有已勾选的普通内容能触发模型判断，Cloudflare 会收到该合成文本。真实应用发送的范围见 [应用范围](../../docs/app-scope.md)。API 错误、未知或不确定结果均保留，没有关键词降级。
 
@@ -30,7 +30,7 @@ python3 validation/clef/evaluate.py --split eval --output .tools/clef-results/ne
 python3 validation/clef/bridge.py
 ```
 
-桥接仅监听127.0.0.1:18765。手机通过ADB USB反向转发到电脑，电脑调用 Cloudflare。请求只接受来源 io.github.pathgao.housheng.fixture、最多4000字及合法请求ID。响应协议仍是 POST /v1/classify → request_id、decision、model、elapsed_ms，decision 仅 keep/filter/uncertain。密钥不写日志，不放入APK。
+桥接只在 online 调试包可用，正式版不带这个开关，也不放行明文请求。桥接仅监听127.0.0.1:18765。手机通过ADB USB反向转发到电脑，电脑调用 Cloudflare。请求只接受来源 io.github.pathgao.housheng.fixture、最多4000字及合法请求ID。响应协议仍是 POST /v1/classify → request_id、decision、model、elapsed_ms，decision 仅 keep/filter/uncertain。密钥不写日志，不放入APK。
 
 选择明确的设备，避免误操作已运行的模拟器。手机需保持解锁：
 

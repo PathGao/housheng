@@ -11,7 +11,7 @@ scripts/build-local.sh --no-daemon -Pkotlin.compiler.execution.strategy=in-proce
 python3 -m unittest discover -s validation/clef -v
 ```
 
-主程序分两个 flavor：`offline` 包名 `io.github.pathgao.housheng`，无网络权限；`online` 包名加 `.online`，多出 `app/src/online` 下的 Clef、真实应用筛选和遮挡。类名两版相同，设备命令按包名区分。
+主程序分两个 flavor：`offline` 包名 `io.github.pathgao.housheng`，无网络权限；`online` 包名加 `.online`，多出 `app/src/online` 下的 Clef、真实应用筛选和遮挡，服务名带“后生 AI”前缀。USB 电脑桥接和 127.0.0.1 明文放行只在 `app/src/onlineDebug`，正式版固定手机直连。类名两版相同，设备命令按包名区分。
 
 `.tools/clef.env` 只用于电脑端验证，不进 APK 或 Git。手机在后生内配置自己的凭据。`.tools/android-user/debug.keystore` 决定本机调试包的更新签名，不能作为缓存删除。
 
@@ -25,7 +25,7 @@ python3 -m unittest discover -s validation/clef -v
 adb shell am instrument -w -r -e realApps true -e class io.github.pathgao.housheng.RealAppValidationTest io.github.pathgao.housheng.online.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-合成场景继续作为回归工具检查过期结果、广告页、通知保护等边界。入口为 `scripts/test-device.sh --model direct`，安装 online 调试版、独立验证场和两个测试组件。测试进程退出会强停主程序，脚本最后通过独立进程恢复服务。这种测试重连不能当作日常运行需要反复授权的证据。
+合成场景继续作为回归工具检查过期结果、广告页、通知保护等边界。入口为 `scripts/test-device.sh --model direct`，安装 online 调试版、独立验证场和两个测试组件。设 `HOUSHENG_FLAVOR=offline` 可在不联网调试版上跑不含模型的部分。测试进程退出会强停主程序，脚本最后通过独立进程恢复服务。这种测试重连不能当作日常运行需要反复授权的证据。
 
 交付手机只保留后生主程序。测试组件、验证场、临时凭据文件、截图缓存和 ADB 反向转发在收尾清理。真实内容截图和界面树不上传 GitHub。
 
@@ -33,7 +33,6 @@ adb shell am instrument -w -r -e realApps true -e class io.github.pathgao.houshe
 
 - 小红书只识别发现页标题，不能理解图片和视频。广告标记无法通过无障碍读取的情况仍需实测，不宣称能可靠区分所有商业内容。
 - 抖音系 40.6.0 与快手系 14.8.40 的视频文案筛选只按小米 10S 采样数据离线回放过，未在真机运行。快手只采到未登录状态，广告和直播样本缺失。尚未接入 OCR 或视频理解，没有文案的视频不处理。
-- 设备测试只在 online 调试版上运行。两版的通知与无障碍服务同名，同时安装时系统设置里会各出现两个“后生通知观察”“后生页面观察”。
 - 24–72 小时后台稳定性、不同运营商网络、其他品牌和跨应用版本兼容性尚未验收。
 
 最新结果见 [Clef 验证](clef-validation.md)，待办与不做的范围见 [路线图](roadmap.md)。
