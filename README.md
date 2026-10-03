@@ -6,7 +6,7 @@
 
 **把信息的主动权拿回自己手里。**
 
-[![构建与检查](https://github.com/PathGao/housheng/actions/workflows/ci.yml/badge.svg)](https://github.com/PathGao/housheng/actions/workflows/ci.yml)
+[![CI](https://github.com/PathGao/housheng/actions/workflows/ci.yml/badge.svg)](https://github.com/PathGao/housheng/actions/workflows/ci.yml)
 
 手机里哪些消息值得留下，哪些内容今天不想看，应该由自己决定。后生是一款中文 Android 信息流助手，从帮爸妈管理通知做起，也计划帮助年轻人按自己的意愿筛选内容、接触新话题、暂时回避不想看的信息。
 

@@ -1,4 +1,4 @@
-name: 构建与检查
+name: CI
 
 on:
   push:
