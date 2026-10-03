@@ -11,6 +11,17 @@ android {
         versionName = "0.2.1-family-preview"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    // 发行签名只从环境变量读取，缺省时 assembleRelease 产出未签名包，CI 照常通过。
+    val keystorePath = System.getenv("HOUSHENG_KEYSTORE_PATH")
+    if (keystorePath != null) {
+        signingConfigs.create("release") {
+            storeFile = file(keystorePath)
+            storePassword = System.getenv("HOUSHENG_KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("HOUSHENG_KEY_ALIAS")
+            keyPassword = System.getenv("HOUSHENG_KEY_PASSWORD")
+        }
+        buildTypes.getByName("release").signingConfig = signingConfigs.getByName("release")
+    }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
 }
