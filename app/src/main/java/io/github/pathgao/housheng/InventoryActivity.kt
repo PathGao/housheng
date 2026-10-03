@@ -53,7 +53,7 @@ class InventoryActivity : Activity() {
         super.onCreate(state)
         val page = ProductUi.page(this, "应用清单")
         refresh = ProductUi.appBarAction(page, "刷新") { scan() }
-        val gutter = if (resources.configuration.screenWidthDp >= 600) 48 else 16
+        val gutter = gutter(resources.configuration.screenWidthDp)
         summary = ProductUi.text(this, "", Type.SUPPORT).apply {
             accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
             setPadding(dp(4), dp(8), dp(4), 0)
@@ -168,7 +168,7 @@ class InventoryActivity : Activity() {
             cell.background = shape()
             row.background = RippleDrawable(ColorStateList.valueOf(getColor(R.color.housheng_ripple)), null, shape())
             (row.getChildAt(0) as ImageView).setImageDrawable(icons[app.packageName])
-            (row.getChildAt(1) as TextView).text = ProductUi.twoLine(this@InventoryActivity, app.name, installed(app))
+            (cell.tag as ProductUi.NavRow).label.text = ProductUi.twoLine(this@InventoryActivity, app.name, installed(app))
             row.setOnClickListener { details(app) }
             cell.getChildAt(1).visibility = if (last) View.GONE else View.VISIBLE
             return cell
@@ -177,7 +177,7 @@ class InventoryActivity : Activity() {
 
     private fun appCell() = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        addView(ProductUi.navRow(context, "", leading = ColorDrawable(0)) {}.view)
+        tag = ProductUi.navRow(context, "", leading = ColorDrawable(0)) {}.also { addView(it.view) }
         addView(View(context).apply {
             background = InsetDrawable(ColorDrawable(getColor(R.color.housheng_divider)), dp(72), 0, 0, 0)
             layoutParams = LinearLayout.LayoutParams(-1, dp(1))

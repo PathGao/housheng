@@ -8,6 +8,7 @@ import android.text.InputType
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.Switch
 import android.widget.Toast
 import java.util.concurrent.Executors
@@ -144,7 +145,7 @@ class NotificationsActivity : Activity() {
                 }.view)
             })
         }
-        AlertDialog.Builder(this).setTitle(name).setView(content)
+        AlertDialog.Builder(this).setTitle(name).setView(ScrollView(this).apply { addView(content) })
             .setNegativeButton("完成", null)
             .setOnDismissListener { if (!isDestroyed) updateRow(source) }
             .show()
