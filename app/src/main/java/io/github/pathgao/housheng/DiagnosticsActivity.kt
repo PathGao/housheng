@@ -7,7 +7,6 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputFilter
-import android.view.View
 import android.widget.*
 import java.io.File
 
@@ -20,7 +19,7 @@ class DiagnosticsActivity : Activity() {
     private lateinit var feedSwitch: Switch
     private var updatingSwitches = false
     private val preferences by lazy { Preferences(this) }
-    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
+    private fun dp(value: Int) = ProductUi.dp(this, value)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +34,7 @@ class DiagnosticsActivity : Activity() {
                 return "观察到 ${counts.values.sum()} 次内容展示\n" + counts.entries.joinToString("\n") { "${it.key.label}：${it.value}次" }
             }
             AlertDialog.Builder(this).setTitle("本次信息流统计")
-                .setMessage("真实应用\n${counts(false)}\n\n验证场（不计入父母统计）\n${counts(true)}\n\n模型仅返回保留、过滤或不确定，不输出话题，内容记为未分类。小红书实验筛选暂不计入话题统计。次数表示观察到的展示，不代表观看时长。仅保存在本次进程，清空记录或进程结束后清除。")
+                .setMessage("真实应用\n${counts(false)}\n\n验证场（不计入父母统计）\n${counts(true)}\n\n模型仅返回保留、过滤或不确定，不输出话题，内容记为未分类。真实应用实验筛选暂不计入话题统计。次数表示观察到的展示，不代表观看时长。仅保存在本次进程，清空记录或进程结束后清除。")
                 .setPositiveButton("关闭", null).show()
         }
         status = label("", Type.SUPPORT)
