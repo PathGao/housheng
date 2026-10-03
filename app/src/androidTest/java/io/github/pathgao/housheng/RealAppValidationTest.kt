@@ -8,32 +8,34 @@ import org.junit.Test
 /** Runs only when explicitly selected on an unlocked phone with Xiaohongshu 9.49.0. */
 class RealAppValidationTest {
     @Test fun classifyVisibleDiscoveryCardsInTheRealApp() {
+        org.junit.Assume.assumeTrue(InstrumentationRegistry.getArguments().getString("realApps") == "true")
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         DeviceUi.automation.apply {
             serviceInfo = serviceInfo.apply { flags = flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
         }
+        val prefs = Preferences(instrumentation.targetContext)
+        val originalRules = prefs.ruleText()
         DevicePreparation().reconnectServicesForInstrumentation()
-        instrumentation.runOnMainSync {
+        try {
+            instrumentation.runOnMainSync {
             Session.stop(); Session.clear()
+            prefs.saveRules("")
             ModelValidation.realEnabled = true
             Session.feedExecution = true
-        }
-        DeviceUi.shell("am start -W -f 0x10008000 -n com.xingin.xhs/.index.v2.IndexActivityV2")
-        val end = Session.now() + 15000
-        var classified = false
-        while (Session.now() < end) {
+            }
+            DeviceUi.shell("am start -W -f 0x10008000 -n com.xingin.xhs/.index.v2.IndexActivityV2")
+            val end = Session.now() + 15000
+            var classified = false
+            while (Session.now() < end) {
             instrumentation.runOnMainSync { classified = Session.journal().contains("小红书 Clef ·") }
             if (classified) break
             Thread.sleep(100)
-        }
-        assertTrue("Real discovery cards must reach Clef: ${Session.journal()}", classified)
-        Thread.sleep(4000)
-        instrumentation.sendStatus(0, Bundle().apply { putString("realFeed", Session.journal()) })
-        val root = DeviceUi.automation.rootInActiveWindow ?: error("No public feed")
-        val card = try { XiaohongshuFeed.read(root).first() } finally { root.recycle() }
-        val prefs = Preferences(instrumentation.targetContext)
-        val originalRules = prefs.ruleText()
-        try {
+            }
+            assertTrue("Real discovery cards must reach Clef: ${Session.journal()}", classified)
+            Thread.sleep(4000)
+            instrumentation.sendStatus(0, Bundle().apply { putString("realFeed", Session.journal()) })
+            val root = DeviceUi.automation.rootInActiveWindow ?: error("No public feed")
+            val card = try { XiaohongshuFeed.read(root).first() } finally { root.recycle() }
             instrumentation.runOnMainSync {
                 prefs.saveRules(card.title)
                 FeedService.instance!!.invalidate()
@@ -41,13 +43,13 @@ class RealAppValidationTest {
             }
             Thread.sleep(800)
             assertTrue(Session.journal(), Session.journal().contains("小红书 · 卡片已遮挡"))
-            fun revealNode(): android.view.accessibility.AccessibilityNodeInfo? {
+            fun revealNode(at: android.graphics.Rect? = null): android.view.accessibility.AccessibilityNodeInfo? {
                 for (window in DeviceUi.automation.windows) {
                     val windowRoot = window.root ?: continue
                     try {
                         if (windowRoot.packageName?.toString() != instrumentation.targetContext.packageName) continue
                         val nodes = windowRoot.findAccessibilityNodeInfosByText("显示这条")
-                        val found = nodes.firstOrNull { it.text?.toString() == "显示这条" }
+                        val found = nodes.firstOrNull { it.text?.toString() == "显示这条" && (at == null || android.graphics.Rect().also(it::getBoundsInScreen) == at) }
                         val copy = found?.let { android.view.accessibility.AccessibilityNodeInfo.obtain(it) }
                         nodes.forEach { it.recycle() }
                         if (copy != null) return copy
@@ -61,15 +63,51 @@ class RealAppValidationTest {
             }
             val reveal = revealNode()
             assertNotNull("Real accessibility overlay must be visible", reveal)
+            val clickedBounds = android.graphics.Rect().also(reveal!!::getBoundsInScreen)
             try { assertTrue(reveal!!.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)) } finally { reveal?.recycle() }
             Thread.sleep(300)
-            assertNull("Reveal must remove the mask", revealNode())
+            assertNull("Reveal must remove the selected mask", revealNode(clickedBounds))
             assertTrue(Session.journal().contains("用户恢复显示"))
             instrumentation.runOnMainSync { FeedService.instance!!.onAccessibilityEvent(android.view.accessibility.AccessibilityEvent.obtain(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SCROLLED)) }
             assertNull("Scrolling must leave no stale overlay", revealNode())
             instrumentation.sendStatus(0, Bundle().apply { putString("realMask", "Real card keyword mask and reveal passed") })
+            fun listNode(node: android.view.accessibility.AccessibilityNodeInfo, depth: Int = 0): android.view.accessibility.AccessibilityNodeInfo? {
+                if (depth > 30) return null
+                if (node.isVisibleToUser && node.isScrollable && node.className?.toString() == "androidx.recyclerview.widget.RecyclerView") return android.view.accessibility.AccessibilityNodeInfo.obtain(node)
+                for (i in 0 until node.childCount) node.getChild(i)?.let { child ->
+                    val found = try { listNode(child, depth + 1) } finally { child.recycle() }
+                    if (found != null) return found
+                }
+                return null
+            }
+            val before = DeviceUi.automation.rootInActiveWindow ?: error("No feed before scroll")
+            val oldTitles = try { XiaohongshuFeed.read(before).map { it.title } } finally { before.recycle() }
+            instrumentation.runOnMainSync { prefs.saveRules(""); Session.clear() }
+            val scrollRoot = DeviceUi.automation.rootInActiveWindow ?: error("No feed")
+            val list = try { listNode(scrollRoot) } finally { scrollRoot.recycle() }
+            try { assertTrue("Real RecyclerView must scroll", list?.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) == true) } finally { list?.recycle() }
+            val scrollEnd = Session.now() + 10000
+            var changed = false
+            var resumed = false
+            while (Session.now() < scrollEnd) {
+                val latest = DeviceUi.automation.rootInActiveWindow
+                if (latest != null) try {
+                    val titles = XiaohongshuFeed.read(latest).map { it.title }
+                    changed = titles.isNotEmpty() && titles != oldTitles
+                } finally { latest.recycle() }
+                instrumentation.runOnMainSync { resumed = Session.journal().contains("小红书 Clef ·") }
+                if (changed && resumed) break
+                Thread.sleep(100)
+            }
+            assertTrue("Actual scroll must reveal different cards", changed)
+            assertTrue("Clef must resume after actual scroll: ${Session.journal()}", resumed)
+            DeviceUi.shell("am start -W -f 0x10008000 -n io.github.pathgao.housheng/.MainActivity")
+            Thread.sleep(300)
+            assertNull("Leaving the feed must remove overlays", revealNode())
+            instrumentation.sendStatus(0, Bundle().apply { putString("realScroll", "Real list advanced, Clef resumed, overlays cleared on app switch") })
         } finally {
-            instrumentation.runOnMainSync { prefs.saveRules(originalRules); Session.stop(); ModelValidation.realEnabled = false }
+            instrumentation.runOnMainSync { Session.stop(); ModelValidation.realEnabled = false }
+            assertTrue(instrumentation.targetContext.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE).edit().putString("rules", originalRules).commit())
         }
     }
 }

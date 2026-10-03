@@ -63,13 +63,23 @@ internal class RealFeedController(private val service: FeedService) {
     private var generation = 0L
     private var closed = false
     private var observedAt = 0L
+    private var refresh: Runnable? = null
     private val supportedVersion by lazy {
         runCatching { service.packageManager.getPackageInfo(XiaohongshuFeed.PACKAGE, 0).versionName == "9.49.0" }.getOrDefault(false)
     }
 
     fun observe(root: AccessibilityNodeInfo, event: AccessibilityEvent): Boolean {
         if (root.packageName?.toString() != XiaohongshuFeed.PACKAGE || !ModelValidation.realEnabled || !supportedVersion) { clear(); return false }
-        if (event.eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED) { clear(); return true }
+        if (event.eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
+            clear()
+            refresh = Runnable {
+                refresh = null
+                val latest = service.rootInActiveWindow ?: return@Runnable
+                val settled = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
+                try { observe(latest, settled) } finally { latest.recycle(); settled.recycle() }
+            }.also { main.postDelayed(it, 120) }
+            return true
+        }
         val cards = XiaohongshuFeed.read(root)
         if (cards == current) return true
         removeMasks()
@@ -105,7 +115,7 @@ internal class RealFeedController(private val service: FeedService) {
                     answers[card.title] = answer
                     Session.record("小红书 Clef · $answer · ${Session.now() - started}ms")
                     if (answer == "filter" && Session.now() - observedAt < 3000) mask(card)
-                }
+                } else Session.record("小红书 · 页面变化，丢弃旧判断")
                 next()
             }
         }
@@ -150,6 +160,6 @@ internal class RealFeedController(private val service: FeedService) {
     }
 
     private fun removeMasks() { masks.values.flatten().forEach { manager.removeView(it) }; masks.clear() }
-    fun clear() { generation++; current = emptyList(); pending = emptyList(); removeMasks() }
+    fun clear() { refresh?.let(main::removeCallbacks); refresh = null; generation++; current = emptyList(); pending = emptyList(); removeMasks() }
     fun close() { closed = true; clear(); answers.clear(); revealed.clear(); worker.shutdownNow() }
 }
