@@ -1,12 +1,12 @@
 # 后生家庭版界面
 
-2026-10-03，家庭版首页、通知清理、家庭报告、应用清单、设置与诊断已实现，同日按 [界面规范](ui-spec.md) 重写界面，家庭版真机验收见 [验证记录](device-validation.md)。随后已接入调试版 Laya 本机模型管线，仅用于独立验证场，详见 [模型验证](laya-validation.md)。真实应用信息流读取和自动筛选尚未开放。
+2026-10-03，家庭版首页、通知清理、家庭报告、应用清单、设置与诊断已实现，同日按 [界面规范](../design/ui/README.md) 重写界面，家庭版真机验收见 [验证记录](device-validation.md)。随后已接入调试版 Laya 本机模型管线，仅用于独立验证场，详见 [模型验证](laya-validation.md)。真实应用信息流读取和自动筛选尚未开放。
 
 ## 依据与取舍
 
 已阅读用户指定的 [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) 技能，运行 `senior mobile companion accessible calm --design-system`。其适老高对比建议适用，但营销落地页结构、网页字体和转化按钮不适用。进一步以 `senior accessible mobile utility --domain product` 核实命中 Senior Care/Elderly，采用大字、暖中性色、简明导航。项目使用 Android 原生 Views，技能没有该栈专属指引，不套用 Compose 或 Web 实现。
 
-颜色、字号、尺寸、状态词表和文案规则以 [界面规范](ui-spec.md) 为准，颜色集中在 colors.xml，组件集中在 ProductUi.kt。图标为 Material Symbols Rounded 转成的 VectorDrawable，由 scripts/material-icon.sh 生成，不引入图标或动画依赖。
+颜色、字号、尺寸、状态词表和文案规则以 [界面规范](../design/ui/README.md) 为准，颜色集中在 colors.xml，组件集中在 ProductUi.kt。图标为 Material Symbols Rounded 转成的 VectorDrawable，由 scripts/material-icon.sh 生成，不引入图标或动画依赖。
 
 本版固定浅色主题，并关闭系统强制反色。未实现独立深色主题，不能宣称已验证深色适配。页面按系统栏与刘海 Insets 留白，长内容纵向滚动，行只设最小高度。应用列表由原生 ListView 回收行，避免一次创建 500 个控件。
 

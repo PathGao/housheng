@@ -30,7 +30,7 @@ import android.widget.ScrollView
 import android.widget.Switch
 import android.widget.TextView
 
-/** Visual vocabulary from docs/ui-spec.md. Sizes are sp so text follows the system font scale. */
+/** Visual vocabulary from design/ui/README.md. Sizes are sp so text follows the system font scale. */
 enum class Type(val sp: Float, val weight: Int, val color: Int) {
     HEADLINE(28f, 700, R.color.housheng_text),
     TITLE(22f, 700, R.color.housheng_text),

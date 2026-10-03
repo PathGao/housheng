@@ -1,6 +1,6 @@
 # 后生界面规范
 
-2026-10-03 确认并实现。组件在 `ProductUi.kt`，颜色在 `colors.xml`。页面分工见 [界面设计](product-design.md)。
+2026-10-03 确认并实现。组件在 `ProductUi.kt`，颜色在 `colors.xml`。页面分工见 [界面设计](../../docs/product-design.md)。设计稿与实机截图在本文末尾。
 
 ## 依据
 
@@ -120,3 +120,35 @@
 2. TalkBack 能读出状态标签全文、开关名称与开关状态、返回按钮。
 3. 每屏实心按钮不超过 1 个。
 4. 颜色关掉（灰度截图）后状态仍可分辨。
+
+## 设计稿
+
+确认方向时的 HTML 稿，源文件 [mockups/mockups.html](mockups/mockups.html)，用 `?s=home` 等参数切换页面。数值是示意，个别文案在实现时按上文调整，以实机截图为准。
+
+![规范总览](mockups/spec-sheet.png)
+
+![改版前后对比](mockups/before-after.png)
+
+| 首页 | 未授权 | 已断开，字号 1.3 倍 |
+|---|---|---|
+| ![](mockups/home.png) | ![](mockups/home-unauth.png) | ![](mockups/home-large.png) |
+
+| 通知清理 | 家庭报告 | 应用清单 |
+|---|---|---|
+| ![](mockups/notify.png) | ![](mockups/report.png) | ![](mockups/apps.png) |
+
+## 实机截图
+
+2026-10-03，Android 13 模拟器，演示数据。
+
+| 首页 | 未授权 | 通知清理 | 通知清理下半 |
+|---|---|---|---|
+| ![](screenshots/01-home.png) | ![](screenshots/09-home-unauthorized.png) | ![](screenshots/02-notifications.png) | ![](screenshots/03-notifications-lower.png) |
+
+| 单个应用 | 家庭报告 | 家庭报告下半 | 应用清单 |
+|---|---|---|---|
+| ![](screenshots/04-app-dialog.png) | ![](screenshots/05-report.png) | ![](screenshots/06-report-lower.png) | ![](screenshots/07-apps.png) |
+
+| 后生会做什么 | 首页，字号 200% | 家庭报告，字号 200% |
+|---|---|---|
+| ![](screenshots/08-about.png) | ![](screenshots/10-home-font200.png) | ![](screenshots/11-report-font200.png) |

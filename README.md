@@ -96,6 +96,7 @@
 | `validation/laya/` | 本机模型桥接与固定决策协议，见 [说明](validation/laya/README.md) |
 | [设备验证](docs/device-validation.md) | 真机测试步骤与结果，入口 `scripts/test-device.sh` |
 | [界面设计](docs/product-design.md) | 家庭版页面与适老取舍 |
+| [界面规范](design/ui/README.md) | 颜色、字号、组件、文案规则，附设计稿与实机截图 |
 | [发版流程](docs/releasing.md) | 签名、打标签、发布 APK |
 | [图标](design/icon/README.md) | 黑猫折扇图标来源与启动器配置 |
 
