@@ -52,7 +52,8 @@ class LoopbackModelClient(private val port: Int = 18765, private val timeoutMs: 
 }
 
 object ModelValidation {
-    var realEnabled = false
+    /** Real apps the user confirmed one by one; kept in memory only, so every process start begins with all of them off. */
+    var realEnabled = emptySet<String>()
         set(value) { field = value; FeedService.instance?.invalidate() }
 
     var enabled = false
@@ -79,17 +80,22 @@ object ModelValidation {
     }
 
     fun addControls(body: LinearLayout) {
-        body.addView(ProductUi.switchRow(body.context, "小红书真实信息流", "仅发现页卡片标题，发送给 Clef 判断").apply {
-            isChecked = realEnabled
-            setOnCheckedChangeListener { _, checked ->
-                if (!checked) realEnabled = false
-                else android.app.AlertDialog.Builder(context).setTitle("启用小红书筛选？")
-                    .setMessage("将发现页公开卡片标题发送给 Cloudflare Clef。不会上传图片、作者、评论或私信。开启内容处理后，命中卡片会遮挡，可点按恢复。当前适配小红书 9.49.0，其他版本保留原页。")
-                    .setPositiveButton("启用") { _, _ -> realEnabled = true }
-                    .setNegativeButton("取消") { _, _ -> isChecked = false }
-                    .setOnCancelListener { isChecked = false }.show()
-            }
-        })
+        for (pkg in RealFeeds.packages) {
+            val name = AppCatalog.sources.getValue(pkg)
+            val cards = pkg == RealFeeds.XIAOHONGSHU
+            body.addView(ProductUi.switchRow(body.context, "${name}真实信息流", if (cards) "仅发现页卡片标题，发送给 Clef 判断" else "仅推荐页当前视频的文案，发送给 Clef 判断").apply {
+                isChecked = pkg in realEnabled
+                setOnCheckedChangeListener { _, checked ->
+                    if (!checked) realEnabled -= pkg
+                    else android.app.AlertDialog.Builder(context).setTitle("启用${name}筛选？")
+                        .setMessage(if (cards) "将发现页公开卡片标题发送给 Cloudflare Clef。不会上传图片、作者、评论或私信。开启内容处理后，命中卡片会遮挡，可点按恢复。当前适配小红书 9.49.0，其他版本保留原页。"
+                            else "将推荐页当前视频的公开标题和话题发送给 Cloudflare Clef。不会上传画面、作者、评论或私信，广告、直播和无法确认的页面不读取。开启内容处理后，命中视频整块模糊遮挡，不会自动划走，可点按恢复。当前适配${name} ${RealFeeds.version(pkg)}，其他版本保留原页。")
+                        .setPositiveButton("启用") { _, _ -> realEnabled += pkg }
+                        .setNegativeButton("取消") { _, _ -> isChecked = false }
+                        .setOnCancelListener { isChecked = false }.show()
+                }
+            })
+        }
         body.addView(ProductUi.button(body.context, "配置 Clef API / 测试连接") {
             body.context.startActivity(android.content.Intent(body.context, ClefSettingsActivity::class.java))
         })

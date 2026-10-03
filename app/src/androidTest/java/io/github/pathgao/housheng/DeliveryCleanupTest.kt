@@ -14,7 +14,7 @@ class DeliveryCleanupTest {
         val credentials = ClefCredentials(context).load()
         instrumentation.runOnMainSync {
             Session.stop(); Session.clear()
-            ModelValidation.realEnabled = false; ModelValidation.enabled = false
+            ModelValidation.realEnabled = emptySet(); ModelValidation.enabled = false
             for (kind in listOf("pages", "notifications")) Preferences(context).select(kind, Session.FIXTURE, false)
         }
         assertTrue(context.getSharedPreferences("settings", 0).edit().commit())
