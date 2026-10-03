@@ -111,7 +111,7 @@ class RealAppValidationTest {
             }
             assertTrue("Actual scroll must reveal different cards", changed)
             assertTrue("Clef must resume after actual scroll: ${Session.journal()}", resumed)
-            DeviceUi.shell("am start -W -f 0x10008000 -n io.github.pathgao.housheng/.MainActivity")
+            DeviceUi.shell("am start -W -f 0x10008000 -n ${instrumentation.targetContext.packageName}/${MainActivity::class.java.name}")
             Thread.sleep(300)
             assertNull("Leaving the feed must remove overlays", revealNode())
             instrumentation.sendStatus(0, Bundle().apply { putString("realScroll", "Real list advanced, Clef resumed, overlays cleared on app switch") })

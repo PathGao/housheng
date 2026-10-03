@@ -10,7 +10,7 @@ adb = os.environ.get("ADB", ".tools/android-sdk/platform-tools/adb")
 args = [adb]
 if os.environ.get("ANDROID_SERIAL"):
     args += ["-s", os.environ["ANDROID_SERIAL"]]
-subprocess.run(args + ["shell", "run-as", "io.github.pathgao.housheng", "sh", "-c",
+subprocess.run(args + ["shell", "run-as", "io.github.pathgao.housheng.online", "sh", "-c",
                       "'mkdir -p files; cat > files/clef-test.json; chmod 600 files/clef-test.json'"],
                input=json.dumps({"account": account, "token": client.token}).encode(), check=True)
 print("Private test credentials installed without logging their values.")

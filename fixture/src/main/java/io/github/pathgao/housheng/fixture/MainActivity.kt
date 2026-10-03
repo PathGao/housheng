@@ -33,7 +33,7 @@ class MainActivity : Activity() {
         button("未知类型保护场景") { index = 0; showCard("unknown") }
         button("发送4条测试通知") { sendNotifications() }
         button("清除测试通知") { getSystemService(NotificationManager::class.java).cancelAll() }
-        button("返回后生") { startActivity(Intent().setClassName("io.github.pathgao.housheng", "io.github.pathgao.housheng.MainActivity")) }
+        button("返回后生") { finish() }
         if (scene == "notifications") sendNotifications()
         if (scene == "cleanup") getSystemService(NotificationManager::class.java).cancelAll()
     }

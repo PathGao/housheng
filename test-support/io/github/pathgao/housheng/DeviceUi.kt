@@ -60,7 +60,8 @@ internal object DeviceUi {
 
 }
 
-internal class DevicePreparation {
+/** [app] is the Housheng package under test; the offline and online builds install side by side. */
+internal class DevicePreparation(private val app: String = InstrumentationRegistry.getInstrumentation().targetContext.packageName) {
     private fun bound(): Boolean = DeviceUi.shell("dumpsys accessibility").lineSequence()
         .any { it.contains("Bound services:") && it.contains("后生页面观察") }
 
@@ -72,7 +73,7 @@ internal class DevicePreparation {
     /** Re-enables the service without reading any Settings text; false where shell may not write secure settings. */
     private fun reconnectThroughSecureSettings(): Boolean {
         val key = "enabled_accessibility_services"
-        val own = android.content.ComponentName("io.github.pathgao.housheng", "io.github.pathgao.housheng.FeedService")
+        val own = android.content.ComponentName(app, "io.github.pathgao.housheng.FeedService")
         val others = DeviceUi.shell("settings get secure $key").trim().split(':')
             .filter { it.isNotBlank() && it != "null" && android.content.ComponentName.unflattenFromString(it) != own }
         return try {

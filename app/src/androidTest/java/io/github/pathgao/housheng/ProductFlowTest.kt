@@ -30,7 +30,7 @@ class ProductFlowTest {
         return view
     }
     private fun home(): Activity {
-        DeviceUi.shell("am start -W -f 0x10008000 -n ${context.packageName}/.MainActivity")
+        DeviceUi.shell("am start -W -f 0x10008000 -n ${context.packageName}/${MainActivity::class.java.name}")
         var activity: Activity? = null
         val deadline = Session.now() + 5000
         while (Session.now() < deadline) {

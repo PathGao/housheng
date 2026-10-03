@@ -28,7 +28,7 @@ class ClefConfigurationTest {
         val context = instrumentation.targetContext
         val store = ClefCredentials(context)
         val original = store.load()
-        DeviceUi.shell("am start -W -f 0x10008000 -n io.github.pathgao.housheng/.MainActivity")
+        DeviceUi.shell("am start -W -f 0x10008000 -n ${context.packageName}/${MainActivity::class.java.name}")
         val monitor = instrumentation.addMonitor(ClefSettingsActivity::class.java.name, null, false)
         instrumentation.runOnMainSync {
             context.startActivity(android.content.Intent(context, ClefSettingsActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
