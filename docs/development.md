@@ -20,7 +20,7 @@ python3 -m unittest discover -s validation/clef -v
 真实小红书测试必须显式选择 `RealAppValidationTest`，不会混进日常回归。它需要已保存 Clef 凭据、小红书 9.49.0、已登录且处于首页发现页。它调用真实 API，验证实际卡片的读取、遮挡与恢复，不使用合成内容替代。
 
 ```sh
-adb shell am instrument -w -r -e class io.github.pathgao.housheng.RealAppValidationTest io.github.pathgao.housheng.test/androidx.test.runner.AndroidJUnitRunner
+adb shell am instrument -w -r -e realApps true -e class io.github.pathgao.housheng.RealAppValidationTest io.github.pathgao.housheng.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 合成场景继续作为回归工具检查过期结果、广告页、通知保护等边界。入口为 `scripts/test-device.sh --model direct`，安装主程序、独立验证场和两个测试组件。测试进程退出会强停主程序，脚本最后通过独立进程恢复服务。这种测试重连不能当作日常运行需要反复授权的证据。
