@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.view.accessibility.AccessibilityManager
@@ -75,12 +76,32 @@ fun Activity.connectNotifications(onRebind: () -> Unit) {
         AlertDialog.Builder(this).setTitle("允许后生读取通知")
             .setMessage("后生只处理你选的应用，不保存通知标题和正文。可以随时在系统设置里关闭。")
             .setPositiveButton("去系统设置") { _, _ ->
-                runCatching { startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
-                    .onFailure { Toast.makeText(this, "无法打开此入口，请在手机设置中查看通知权限", Toast.LENGTH_LONG).show() }
+                if (!openSettings(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) Toast.makeText(this, "无法打开此入口，请在手机设置中查看通知权限", Toast.LENGTH_LONG).show()
             }
             .setNegativeButton("取消", null).show()
     } else {
         NotificationListenerService.requestRebind(ComponentName(this, NotificationService::class.java))
         onRebind()
     }
+}
+
+/** Some ROMs drop or don't export a settings page, so each entry has a second page that reaches the same switch. */
+internal fun settingsPages(action: String): List<String> = when (action) {
+    Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS -> listOf(action, Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS)
+    Settings.ACTION_APP_NOTIFICATION_SETTINGS -> listOf(action, Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+    else -> listOf(action)
+}
+
+internal fun <T> launchFirst(candidates: List<T>, launch: (T) -> Unit): Boolean =
+    candidates.any { runCatching { launch(it) }.isSuccess }
+
+/** Returns false when no page opened, so the caller can tell the user where to look. */
+fun Context.openSettings(action: String, target: String = packageName): Boolean = launchFirst(settingsPages(action)) {
+    startActivity(when (it) {
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS -> Intent(it, Uri.fromParts("package", target, null))
+        Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS -> Intent(it).putExtra(
+            Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME, ComponentName(this, NotificationService::class.java).flattenToString()
+        )
+        else -> Intent(it).putExtra(Settings.EXTRA_APP_PACKAGE, target)
+    })
 }

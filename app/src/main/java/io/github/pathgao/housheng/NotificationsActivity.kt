@@ -2,7 +2,6 @@ package io.github.pathgao.housheng
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputType
@@ -141,7 +140,7 @@ class NotificationsActivity : Activity() {
             addView(ProductUi.group(context).apply {
                 addView(managed); addView(allow)
                 addView(ProductUi.navRow(context, "系统通知设置") {
-                    openSettings(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, source))
+                    if (!openSettings(Settings.ACTION_APP_NOTIFICATION_SETTINGS, source)) Toast.makeText(this@NotificationsActivity, "无法打开此入口，请在手机设置中查看通知权限", Toast.LENGTH_LONG).show()
                 }.view)
             })
         }
@@ -178,8 +177,5 @@ class NotificationsActivity : Activity() {
         }
     }
 
-    private fun openSettings(intent: Intent) {
-        runCatching { startActivity(intent) }.onFailure { Toast.makeText(this, "无法打开此入口，请在手机设置中查看通知权限", Toast.LENGTH_LONG).show() }
-    }
     override fun onDestroy() { worker.shutdownNow(); super.onDestroy() }
 }
