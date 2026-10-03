@@ -66,7 +66,7 @@ class NotificationsActivity : Activity() {
         val pad = ProductUi.dp(this, 16)
         rules = EditText(this).apply {
             textSize = Type.BODY.sp
-            background = null
+            background = ProductUi.rounded(context, R.color.housheng_surface, 12, R.color.housheng_outline)
             setPadding(pad, pad, pad, pad)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
             minLines = 3
@@ -76,7 +76,7 @@ class NotificationsActivity : Activity() {
         }
         body.addView(ProductUi.group(this).apply {
             showDividers = LinearLayout.SHOW_DIVIDER_NONE
-            addView(rules)
+            addView(rules, LinearLayout.LayoutParams(-1, -2).apply { setMargins(pad, pad, pad, pad) })
             addView(ProductUi.button(context, "保存关键词", ButtonKind.TONAL) { saveRules() }.apply {
                 layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(pad, 0, pad, pad) }
             })
@@ -120,7 +120,6 @@ class NotificationsActivity : Activity() {
             }
         }
         row.label.text = ProductUi.twoLine(this, AppCatalog.sources.getValue(source), support)
-        row.value.text = if (managed) "已管理" else "未管理"
     }
 
     private fun showApp(source: String, name: String) {
