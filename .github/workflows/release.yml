@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   release:
-    name: 签名发行包并创建 Release
+    name: 签名两版发行包并创建 Release
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -57,21 +57,23 @@ jobs:
           HOUSHENG_KEYSTORE_PASSWORD: ${{ secrets.HOUSHENG_KEYSTORE_PASSWORD }}
           HOUSHENG_KEY_ALIAS: ${{ secrets.HOUSHENG_KEY_ALIAS }}
           HOUSHENG_KEY_PASSWORD: ${{ secrets.HOUSHENG_KEY_PASSWORD }}
-        run: ./gradlew --no-daemon --console=plain :app:testDebugUnitTest :app:lintDebug :app:assembleRelease
+        run: >-
+          ./gradlew --no-daemon --console=plain
+          :app:testOfflineDebugUnitTest :app:testOnlineDebugUnitTest
+          :app:lintOnlineDebug :app:lintOfflineRelease :app:assembleRelease
       - name: 检查权限与签名并计算校验和
         shell: bash
         run: |
           tools="$ANDROID_HOME/build-tools/35.0.0"
-          apk=app/build/outputs/apk/release/app-release.apk
-          permissions="$("$tools/aapt2" dump permissions "$apk")"
-          if grep -q 'android.permission.INTERNET' <<< "$permissions"; then
-            echo '::error::发行构建不应包含网络权限'
-            exit 1
-          fi
-          "$tools/apksigner" verify --print-certs "$apk"
+          offline=app/build/outputs/apk/offline/release/app-offline-release.apk
+          online=app/build/outputs/apk/online/release/app-online-release.apk
+          scripts/check-permissions.sh "$tools/aapt2" "$offline" "$online"
+          "$tools/apksigner" verify --print-certs "$offline"
+          "$tools/apksigner" verify --print-certs "$online"
           mkdir dist
-          cp "$apk" "dist/housheng-$VERSION.apk"
-          (cd dist && sha256sum "housheng-$VERSION.apk" > SHA256SUMS && cat SHA256SUMS)
+          cp "$offline" "dist/housheng-$VERSION.apk"
+          cp "$online" "dist/housheng-online-$VERSION.apk"
+          (cd dist && sha256sum "housheng-$VERSION.apk" "housheng-online-$VERSION.apk" > SHA256SUMS && cat SHA256SUMS)
       - name: 创建 GitHub Release
         shell: bash
         env:
@@ -83,7 +85,7 @@ jobs:
           if [ -f "$notes" ]; then args+=(--notes-file "$notes"); else args+=(--generate-notes); fi
           if [[ "$VERSION" == *-* ]]; then args+=(--prerelease); fi
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" "${args[@]}" \
-            "dist/housheng-$VERSION.apk" dist/SHA256SUMS
+            "dist/housheng-$VERSION.apk" "dist/housheng-online-$VERSION.apk" dist/SHA256SUMS
       - name: 删除签名密钥
         if: always()
         run: rm -f "$RUNNER_TEMP/release.jks"

@@ -7,8 +7,8 @@ android {
         applicationId = "io.github.pathgao.housheng"
         minSdk = 30
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.2.3-clef-preview"
+        versionCode = 6
+        versionName = "0.2.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     // offline 不带网络权限；online 加 Clef 与真实应用筛选，包名不同，两版可同时安装。
