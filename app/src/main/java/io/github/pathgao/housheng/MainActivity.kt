@@ -14,6 +14,7 @@ class MainActivity : Activity() {
     private lateinit var status: StatusPanel
     private lateinit var notifications: ProductUi.NavRow
     private lateinit var pause: Button
+    private lateinit var setup: LinearLayout
     private var generation = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,6 +25,14 @@ class MainActivity : Activity() {
         status = StatusPanel(this) { connectNotifications { refreshStatus() } }
         body.addView(status.view)
         body.addView(ProductUi.spacer(this))
+        setup = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(ProductUi.group(context, inset = true).apply {
+                addView(ProductUi.navRow(context, "一键设置", R.drawable.ic_checklist, support = "回答 3 个问题，不用自己调") { open(SetupActivity::class.java) }.view)
+            })
+            addView(ProductUi.spacer(context))
+        }
+        body.addView(setup)
         body.addView(ProductUi.group(this, inset = true).apply {
             notifications = ProductUi.navRow(context, "通知清理", R.drawable.ic_notifications) { open(NotificationsActivity::class.java) }
             addView(notifications.view)
@@ -58,6 +67,10 @@ class MainActivity : Activity() {
         pause.visibility = if (state == ServiceStatus.EXECUTING) View.VISIBLE else View.GONE
         val chosen = Preferences(this).selected("notifications").count { it != AppCatalog.FIXTURE }
         notifications.value.text = if (chosen == 0) "未选择" else "$chosen 个应用"
+        // Before anything is chosen, setup is the first thing to do, so it goes above the status panel.
+        val body = setup.parent as LinearLayout
+        val wanted = if (chosen == 0) 1 else 3
+        if (body.indexOfChild(setup) != wanted) { body.removeView(setup); body.addView(setup, wanted) }
     }
 
     private fun loadMetrics() {
