@@ -79,7 +79,7 @@
 - 状态不只靠颜色区分，灰度下也能分辨。
 - 版式和系统设置一致：分组列表，整行可点，← 返回。
 
-参考了 Material 3、Apple HIG 和工信部《移动互联网应用（APP）适老化通用设计规范》。完整规则、设计稿和实机截图见 [界面规范](design/ui/README.md)。
+参考了 Material 3、Apple HIG 和工信部《移动互联网应用（APP）适老化通用设计规范》。完整规则、设计稿和实机截图见 [界面规范](docs/DESIGN.md#三视觉设计)。
 
 <p align="center">
   <img src="design/ui/screenshots/10-home-font200.png" width="220" alt="系统字号 200% 时的首页">
@@ -106,7 +106,7 @@
 日常使用**不需要无障碍权限**。清理发生在通知到达之后，已经响过的声音或弹过的横幅仍会出现。想彻底关掉某个应用的通知，用后生里的“系统通知设置”入口。
 
 > [!WARNING]
-> 装过 CI 或本机调试包的手机，签名与发行版不同，无法直接覆盖安装。需要先卸载旧版，本机记录会清空。详见 [发版流程](docs/releasing.md)。
+> 装过 CI 或本机调试包的手机，签名与发行版不同，无法直接覆盖安装。需要先卸载旧版，本机记录会清空。详见 [发版流程](docs/RELEASE.md)。
 
 ## 隐私
 
@@ -149,9 +149,8 @@
 | `validation/clef/` | Clef 手机直连、USB 对照与固定样本评估，见 [说明](validation/clef/README.md) |
 | [开发入口](docs/development.md) | 本机构建、真实应用验证与清理范围 |
 | [设备验证](docs/device-validation.md) | 真机测试步骤与结果，入口 `scripts/test-device.sh` |
-| [界面设计](docs/product-design.md) | 家庭版页面与适老取舍 |
-| [界面规范](design/ui/README.md) | 颜色、字号、组件、文案规则，附设计稿与实机截图 |
-| [发版流程](docs/releasing.md) | 签名、打标签、发布 APK |
+| [设计文档](docs/DESIGN.md) | 术语表、家庭版页面与适老取舍、颜色字号组件规则，附设计稿与实机截图 |
+| [发版流程](docs/RELEASE.md) | 签名、打标签、发布 APK |
 | [图标](design/icon/README.md) | 黑猫折扇图标来源与启动器配置 |
 
 反馈问题请在 [Issues](https://github.com/PathGao/housheng/issues) 附上手机型号、Android 版本、操作步骤和首页显示的服务状态。截图前请遮挡个人信息，不需要提供真实通知正文。
