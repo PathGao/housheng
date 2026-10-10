@@ -150,6 +150,7 @@
 | [开发入口](docs/development.md) | 本机构建、真实应用验证与清理范围 |
 | [设备验证](docs/device-validation.md) | 真机测试步骤与结果，入口 `scripts/test-device.sh` |
 | [设计文档](docs/DESIGN.md) | 术语表、家庭版页面与适老取舍、颜色字号组件规则，附设计稿与实机截图 |
+| [架构](docs/ARCHITECTURE.md) | 界面组件、颜色、图标与列表的实现约定 |
 | [发版流程](docs/RELEASE.md) | 签名、打标签、发布 APK |
 | [图标](design/icon/README.md) | 黑猫折扇图标来源与启动器配置 |
 
